@@ -1,0 +1,7 @@
+{
+  "enabledMcpjsonServers": [
+    "browser-server",
+    "supabase"
+  ],
+  "enableAllProjectMcpServers": true
+}
