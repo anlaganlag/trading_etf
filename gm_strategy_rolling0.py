@@ -66,6 +66,10 @@ SCORING_METHOD = 'SMOOTH' # 'STEP': 原版硬截断(前15满分) | 'SMOOTH': 线
 # === 主题集中度控制 ===
 MAX_PER_THEME = 2  # 同一主题最多入选几只（防止板块过度集中）设为0不限制
 
+# === 宏观风控基准配置 ===
+# 沪深300: 'SHSE.510300' | 创业板指: 'SZSE.159915'
+MACRO_BENCHMARK = 'SHSE.510300' 
+
 # === 状态文件 ===
 STATE_FILE = "rolling_state_simple.json"
 
@@ -330,24 +334,24 @@ def init(context):
             print(f"⚠️ Error fetching live data: {e}")
             context.prices_df = pd.DataFrame()
 
-        # --- B. 获取 HS300 行情 (Macro) ---
+        # --- B. 获取宏观基准行情 (Macro) ---
         try:
-            hs300_hd = history(symbol='SHSE.510300', frequency='1d', start_time=start_time, end_time=end_time, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
-            if not hs300_hd.empty:
-                hs300_hd['eob'] = pd.to_datetime(hs300_hd['eob']).dt.tz_localize(None)
-                context.hs300 = hs300_hd.set_index('eob')['close'].sort_index()
+            bm_hd = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_time, end_time=end_time, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+            if not bm_hd.empty:
+                bm_hd['eob'] = pd.to_datetime(bm_hd['eob']).dt.tz_localize(None)
+                context.benchmark_df = bm_hd.set_index('eob')['close'].sort_index()
                 
                 # 插入当前价格
-                hs300_current = current(symbols='SHSE.510300')
-                if hs300_current:
-                    context.hs300.loc[today_dt] = hs300_current[0]['price']
-                print(f"HS300 ETF Loaded: {len(context.hs300)} days (API).")
+                bm_current = current(symbols=MACRO_BENCHMARK)
+                if bm_current:
+                    context.benchmark_df.loc[today_dt] = bm_current[0]['price']
+                print(f"Benchmark {MACRO_BENCHMARK} Loaded: {len(context.benchmark_df)} days (API).")
             else:
-                context.hs300 = None
-                print("Warning: HS300 API data empty.")
+                context.benchmark_df = None
+                print(f"Warning: Benchmark {MACRO_BENCHMARK} API data empty.")
         except Exception as e:
-            context.hs300 = None
-            print(f"Warning: Failed to fetch HS300 API: {e}")
+            context.benchmark_df = None
+            print(f"Warning: Failed to fetch Benchmark {MACRO_BENCHMARK} API: {e}")
 
     else:
         # Backtest Mode: Force API Usage (Consistent with Step 2 Logic)
@@ -381,27 +385,27 @@ def init(context):
             print(f"⚠️ Error fetching backtest data from API: {e}")
             context.prices_df = pd.DataFrame()
 
-        # --- B. 获取 HS300 行情 (Macro) ---
+        # --- B. 获取宏观基准行情 (Macro) ---
         try:
-            hs300_hd = history(symbol='SHSE.510300', frequency='1d', start_time=start_time, end_time=end_time, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
-            if not hs300_hd.empty:
-                hs300_hd['eob'] = pd.to_datetime(hs300_hd['eob']).dt.tz_localize(None)
-                context.hs300 = hs300_hd.set_index('eob')['close'].sort_index()
-                print(f"✓ HS300 Review: {len(context.hs300)} days (API).")
+            bm_hd = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_time, end_time=end_time, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+            if not bm_hd.empty:
+                bm_hd['eob'] = pd.to_datetime(bm_hd['eob']).dt.tz_localize(None)
+                context.benchmark_df = bm_hd.set_index('eob')['close'].sort_index()
+                print(f"✓ Benchmark {MACRO_BENCHMARK} Review: {len(context.benchmark_df)} days (API).")
             else:
-                context.hs300 = None
-                print("Warning: HS300 API data empty.")
+                context.benchmark_df = None
+                print(f"Warning: Benchmark {MACRO_BENCHMARK} API data empty.")
         except Exception as e:
-            context.hs300 = None
-            print(f"Warning: Failed to fetch HS300 from API: {e}")
+            context.benchmark_df = None
+            print(f"Warning: Failed to fetch Benchmark {MACRO_BENCHMARK} from API: {e}")
             
         # === CRITICAL SAFETY CHECK ===
-        # If HS300 is missing, the Macro-Gate will fail (defaulting to 1.0 exposure),
+        # If Benchmark is missing, the Macro-Gate will fail (defaulting to 1.0 exposure),
         # causing a massive 40%+ drawdown. We must STOP if this happens.
-        if context.hs300 is None or context.hs300.empty:
-            raise ValueError("❌ CRITICAL: HS300 (Macro Shield) Data is MISSING! Strategies cannot run safely without it. Check API/Internet.")
+        if context.benchmark_df is None or context.benchmark_df.empty:
+            raise ValueError(f"❌ CRITICAL: Benchmark {MACRO_BENCHMARK} (Macro Shield) Data is MISSING! Strategies cannot run safely without it. Check API/Internet.")
         else:
-             print(f"✅ Macro Shield Active: HS300 Data Loaded ({len(context.hs300)} days)")
+             print(f"✅ Macro Shield Active: {MACRO_BENCHMARK} Data Loaded ({len(context.benchmark_df)} days)")
 
     # 3. State Management
     if context.mode == MODE_BACKTEST and os.path.exists(context.rpm.state_path): 
@@ -432,20 +436,20 @@ def get_market_regime(context, current_dt):
     if len(history) < 60: return 1.0
     
     # === 宏观风控 (Macro Filter) ===
-    # 使用沪深300 (SHSE.510300) 的半年线 (MA120) 作为牛熊分界
+    # 使用基准指数 (如沪深300) 的半年线 (MA120) 作为牛熊分界
     macro_multiplier = 1.0
     debug_msg = ""
     
-    if context.hs300 is not None:
+    if context.benchmark_df is not None:
         # Pre-process: Ensure tz-naive
-        if context.hs300.index.tz is not None:
-             context.hs300.index = context.hs300.index.tz_localize(None)
+        if context.benchmark_df.index.tz is not None:
+             context.benchmark_df.index = context.benchmark_df.index.tz_localize(None)
              
-        hs300_hist = context.hs300[context.hs300.index <= current_dt]
+        bm_hist = context.benchmark_df[context.benchmark_df.index <= current_dt]
         
-        if len(hs300_hist) > 120:
-            current_price = hs300_hist.iloc[-1]
-            ma120 = hs300_hist.tail(120).mean()
+        if len(bm_hist) > 120:
+            current_price = bm_hist.iloc[-1]
+            ma120 = bm_hist.tail(120).mean()
             
             # --- DEBUG BLOCK FOR 2022-2024 CRASH ---
             # Print status every Monday (to reduce log spam) or if Multiplier changes
@@ -453,9 +457,9 @@ def get_market_regime(context, current_dt):
             
             if current_price < ma120:
                 macro_multiplier = 0.5 # 熊市
-                if is_monday: debug_msg = f"[MACRO: BEAR] Price {current_price:.2f} < MA120 {ma120:.2f} -> Scale 0.5"
+                if is_monday: debug_msg = f"[MACRO: BEAR] {MACRO_BENCHMARK} Price {current_price:.2f} < MA120 {ma120:.2f} -> Scale 0.5"
             else:
-                if is_monday: debug_msg = f"[MACRO: BULL] Price {current_price:.2f} > MA120 {ma120:.2f} -> Scale 1.0"
+                if is_monday: debug_msg = f"[MACRO: BULL] {MACRO_BENCHMARK} Price {current_price:.2f} > MA120 {ma120:.2f} -> Scale 1.0"
                 
     if debug_msg: print(f"{current_dt.date()} {debug_msg}")
     
@@ -668,10 +672,10 @@ def get_ranking(context, current_dt):
     is_trending = (last_row > ma20) & (last_row > ma60)
     
     # --- Module 1: 相对强度模块 (Relative Alpha) ---
-    # 获取同期的 HS300 表现作为基准
-    hs300_hist = None
-    if context.hs300 is not None:
-        hs300_hist = context.hs300[context.hs300.index <= current_dt]
+    # 获取同期的宏观基准表现作为基准
+    bm_hist = None
+    if context.benchmark_df is not None:
+        bm_hist = context.benchmark_df[context.benchmark_df.index <= current_dt]
 
     base_scores = pd.Series(0.0, index=history.columns)
     # 激进版权重：保持原有的 Inverse Middle 逻辑
@@ -684,9 +688,9 @@ def get_ranking(context, current_dt):
         rets_dict[f'r{p}'] = rets
         
         # 计算 Alpha (超额收益)
-        if hs300_hist is not None and len(hs300_hist) > p:
-            hs300_p_ret = (hs300_hist.iloc[-1] / hs300_hist.iloc[-(p+1)]) - 1
-            alpha = rets - hs300_p_ret
+        if bm_hist is not None and len(bm_hist) > p:
+            bm_p_ret = (bm_hist.iloc[-1] / bm_hist.iloc[-(p+1)]) - 1
+            alpha = rets - bm_p_ret
         else:
             alpha = rets # 降级为绝对收益
             
