@@ -9,55 +9,29 @@ from dotenv import load_dotenv
 from config import config
 
 load_dotenv()
+# Account ID 用于实时交易
+ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
 
-TOP_N = 4
-REBALANCE_PERIOD_T = 10
-STOP_LOSS = 0.30          # 止损 30%
+
+TOP_N = 4                 # 选前N只
+REBALANCE_PERIOD_T = 10   # 每T个交易日调仓一次
+STOP_LOSS = 0.20          # 止损 15%
 TRAILING_TRIGGER = 0.15   # 15% 开启追踪止盈
 TRAILING_DROP = 0.03      # 回落 3% 止盈退出
 
-# Account ID for Live Trading
-ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
-
-# TOP_N = 4
-# REBALANCE_PERIOD_T = 10
-# STOP_LOSS = 0.20
-# TRAILING_TRIGGER = 0.15
-# EBALANCE_PERIOD_T = 10
-# STOP_LOSS = 0.20
-# TRAILING_TRIGGER = 0.15
-# TRAILING_DROP = 0.05
-
-# 原止损止盈参数
-# STOP_LOSS = 0.05  # 止损
-# TRAILING_TRIGGER = 0.06 # 止盈
-# TRAILING_DROP = 0.02  # 止盈回落
 
 
-
-# --- 原始参数  ---
-# TOP_N = 5
-# REBALANCE_PERIOD_T = 13
-# STOP_LOSS = 0.20  # 止损
-# TRAILING_TRIGGER = 0.10 # 止盈
-# TRAILING_DROP = 0.05  # 止盈回落
-
-
-
-# START_DATE = os.environ.get('GM_START_DATE', '2021-12-03 09:00:00')
-# END_DATE = os.environ.get('GM_END_DATE', '2026-01-23 16:00:00')
-
-
+#牛熊全周期
 START_DATE='2021-12-03 09:00:00'
 END_DATE='2026-01-23 16:00:00'
 
+
+#牛市周期
 # START_DATE='2024-09-01 09:00:00'
 # END_DATE='2026-01-23 16:00:00'
 
-# START_DATE='2021-12-03 09:00:00'
-# END_DATE='2026-01-23 16:00:00'
 DYNAMIC_POSITION = True # 开启动态仓位
-ENABLE_META_GATE = True # False=幽灵模式(只记录不减仓，收益高) | True=开启防御(回撤小)
+ENABLE_META_GATE = False # True=开启防御(回撤小)
 
 
 # === 评分机制开关 ===
@@ -68,13 +42,14 @@ MAX_PER_THEME = 2  # 同一主题最多入选几只（防止板块过度集中�
 
 # === 宏观风控基准配置 ===
 # 沪深300: 'SHSE.510300' | 创业板指: 'SZSE.159915'
-MACRO_BENCHMARK = 'SHSE.510300' 
+# MACRO_BENCHMARK = 'SHSE.510300' 
+MACRO_BENCHMARK = 'SZSE.159915'
 
 # === 状态文件 ===
 STATE_FILE = "rolling_state_simple.json"
 
 # === 实盘数据更新 ===
-LIVE_DATA_UPDATE = False  # True=每日更新prices_df（实盘必开）| False=只用init数据（回测）
+LIVE_DATA_UPDATE = True  # True=每日更新prices_df（实盘必开）| False=只用init数据（回测）
 
 
 MIN_SCORE = 20
@@ -288,17 +263,17 @@ def init(context):
 
     # --- INJECT MISSING TICKERS (Monkey Patch) ---
     # These tickers were found in the winning transaction logs but missing from the excel
-    missing_tickers = [
-        '560860', '516650', '513690', '159516', '159995', 
-        '517520', '512400', '159378', '159638', '516150', 
-        '515400', '159852', '159599', '159998'
-    ]
-    print(f"Injecting {len(missing_tickers)} missing tickers into whitelist...")
-    for code in missing_tickers:
-        full_code = f"SHSE.{code}" if code.startswith('5') else f"SZSE.{code}"
-        context.whitelist.add(full_code)
-        if full_code not in context.theme_map:
-            context.theme_map[full_code] = 'Injected_Alpha'
+    # missing_tickers = [
+    #     '560860', '516650', '513690', '159516', '159995', 
+    #     '517520', '512400', '159378', '159638', '516150', 
+    #     '515400', '159852', '159599', '159998'
+    # ]
+    # print(f"Injecting {len(missing_tickers)} missing tickers into whitelist...")
+    # for code in missing_tickers:
+    #     full_code = f"SHSE.{code}" if code.startswith('5') else f"SZSE.{code}"
+    #     context.whitelist.add(full_code)
+    #     if full_code not in context.theme_map:
+    #         context.theme_map[full_code] = 'Injected_Alpha'
     # ---------------------------------------------
 
 
@@ -408,19 +383,29 @@ def init(context):
              print(f"✅ Macro Shield Active: {MACRO_BENCHMARK} Data Loaded ({len(context.benchmark_df)} days)")
 
     # 3. State Management
-    if context.mode == MODE_BACKTEST and os.path.exists(context.rpm.state_path): 
-        try:
-            os.remove(context.rpm.state_path)
-            print("🗑️ Backtest Mode: Deleted previous state file.", flush=True)
-        except Exception as e:
-            print(f"⚠️ Failed to delete state file: {e}", flush=True)
-        context.rpm.load_state() 
+    if context.mode == MODE_BACKTEST:
+        # 回测模式：删除旧状态，确保从干净的初始状态开始
+        # 后续 algo() 中的 initialize_tranches() 会创建新的分仓
+        if os.path.exists(context.rpm.state_path): 
+            try:
+                os.remove(context.rpm.state_path)
+                print("🗑️ Backtest Mode: Deleted previous state file.", flush=True)
+            except Exception as e:
+                print(f"⚠️ Failed to delete state file: {e}", flush=True)
     else:
+        # 实盘模式：恢复上次保存的分仓状态（持仓、现金、天数等）
         context.rpm.load_state()
 
     # context.days_count moved to rpm.days_count for persistence
-    # 订阅指数行情用于实时更新（可选）
-    subscribe(symbols='SHSE.000001', frequency='1d')
+    # 4. Subscribe for Real-time Updates (Stop Loss / Trailing)
+    # In Live Mode: Monitor every minute to ensure safety.
+    # In Backtest: Use Daily bars (simulated in Algo) to save time, OR set to '60s' if precise simulation is needed.
+    if context.mode == MODE_LIVE:
+        print(f"📡 Subscribing to {len(context.whitelist)} symbols (60s) for Intra-day Stop Loss...")
+        subscribe(symbols=list(context.whitelist), frequency='60s')
+    else:
+        # Backtest default: 1d (Faster). If you need to test Intra-day stops, change to '60s'.
+        subscribe(symbols='SHSE.000001', frequency='1d')
     
     # === 定时任务 ===
     # 每天 14:55 执行策略逻辑
@@ -658,83 +643,6 @@ def get_ranking(context, current_dt):
 
 
 
-    # V6.1 Score Logic: Module 1 (Relative Alpha) + Module 2 (Trend Filter)
-    history = context.prices_df[context.prices_df.index <= current_dt]
-    if len(history) < 251: return None, None
-
-    last_row = history.iloc[-1]
-    
-    # === Module 2: 趋势过滤 (Trend Filter) ===
-    # 核心逻辑：只有处于“可趋势区”的标的才参与评分
-    ma20 = history.tail(20).mean()
-    ma60 = history.tail(60).mean()
-    # 判断：价格在20日均线上方（短期走强）且不处于严重的长期破位（价格>MA60或MA20>MA60）
-    is_trending = (last_row > ma20) & (last_row > ma60)
-    
-    # --- Module 1: 相对强度模块 (Relative Alpha) ---
-    # 获取同期的宏观基准表现作为基准
-    bm_hist = None
-    if context.benchmark_df is not None:
-        bm_hist = context.benchmark_df[context.benchmark_df.index <= current_dt]
-
-    base_scores = pd.Series(0.0, index=history.columns)
-    # 激进版权重：保持原有的 Inverse Middle 逻辑
-    periods_rule = {1: 50, 3: -70, 5: -70, 10: 0, 20: 150}
-    
-    rets_dict = {}
-    for p, pts in periods_rule.items():
-        # 计算绝对涨幅
-        rets = (last_row / history.iloc[-(p+1)]) - 1
-        rets_dict[f'r{p}'] = rets
-        
-        # 计算 Alpha (超额收益)
-        if bm_hist is not None and len(bm_hist) > p:
-            bm_p_ret = (bm_hist.iloc[-1] / bm_hist.iloc[-(p+1)]) - 1
-            alpha = rets - bm_p_ret
-        else:
-            alpha = rets # 降级为绝对收益
-            
-        # 基于 Alpha 进行排名
-        ranks = alpha.rank(ascending=False, method='min')
-        
-        if SCORING_METHOD == 'SMOOTH':
-             decay = (30 - ranks) / 30
-             decay = decay.clip(lower=0)
-             base_scores += decay * pts
-        else: # 'STEP' 原版
-             base_scores += (ranks <= 15) * pts
-    
-    # --- 最终整合过滤 ---
-    # 1. 应用趋势过滤 (Module 2)
-    # 趋势不好的标的得分直接清零，不参与后续 TopN 选拔
-    base_scores = base_scores * is_trending.astype(float)
-    
-    # 2. 限制在白名单内
-    valid_scores = base_scores[base_scores.index.isin(context.whitelist)]
-    
-    # 3. 基础得分阈值
-    valid_scores = valid_scores[valid_scores >= MIN_SCORE]
-    
-    if valid_scores.empty: return None, base_scores
-
-    # 构建结果 DataFrame 用于排序
-    # 即使评分一样，我们也优先选绝对收益最好的标的或者是代码更考前的以保证确定性
-    data_to_df = {
-        'score': valid_scores, 
-        'theme': [context.theme_map.get(c, 'Unknown') for c in valid_scores.index],
-        'etf_code': valid_scores.index 
-    }
-    
-    for p in periods_rule.keys():
-        data_to_df[f'r{p}'] = rets_dict[f'r{p}'][valid_scores.index]
-
-    df = pd.DataFrame(data_to_df)
-    
-    # 排序：得分 -> 20日绝对收益 -> 1日收益 -> 代码
-    sort_cols = ['score', 'r20', 'r1', 'etf_code']
-    asc_order = [False, False, False, True]
-    
-    return df.sort_values(by=sort_cols, ascending=asc_order), base_scores
 
 # def on_bar(context, bars): -> Renamed to algo
 def algo(context):
@@ -897,6 +805,76 @@ def algo(context):
                 active_tranche.buy(sym, amt, price_map.get(sym, 0))
     
     active_tranche.update_value(price_map)
+
+def on_bar(context, bars):
+    """
+    🔥 Real-time Guard Layer (Intra-day Stop Loss)
+    Runs every minute (if subscribed at 60s) to catch falling knives immediately.
+    """
+    # 1. Basic Filters
+    if context.mode == MODE_BACKTEST:
+        # Optimization: In daily backtest, on_bar might not fire or we skip to safe time.
+        # If user enabled 60s backtest, this runs.
+        pass
+    
+    # 2. Process Updates
+    # Note: 'bars' is a list of bar objects for the current interval
+    dirty_wallet = False
+    
+    for bar in bars:
+        symbol = bar.symbol
+        current_price = bar.close
+        bar_high = bar.high
+        
+        # Check against all Tranches (Positions)
+        for t in context.rpm.tranches:
+            if symbol not in t.holdings: continue
+            
+            # A. Update High Watermark (Intra-day High)
+            if symbol in t.pos_records:
+                # Update high_price if current bar went higher
+                old_high = t.pos_records[symbol]['high_price']
+                if bar_high > old_high:
+                    t.pos_records[symbol]['high_price'] = bar_high
+            
+            # B. Check Stop Conditions
+            # Use 'check_guard' logic but with specific price
+            # We construct a mini price_map for the check
+            # Optimization: Inline logic to be faster
+            rec = t.pos_records.get(symbol)
+            if not rec: continue
+            
+            entry = rec['entry_price']
+            high_wm = rec['high_price']
+            
+            # STOP LOSS (Hard)
+            is_stop_loss = current_price < entry * (1 - STOP_LOSS)
+            
+            # TRAILING STOP (Dynamic)
+            # Condition 1: Must have triggered the 'Trigger' (Profit > 15%)
+            # Condition 2: Price fell back by 'Drop' (3%) from High
+            is_trailing = False
+            if high_wm > entry * (1 + TRAILING_TRIGGER):
+                if current_price < high_wm * (1 - TRAILING_DROP):
+                    is_trailing = True
+            
+            if is_stop_loss or is_trailing:
+                reason = "STOP_LOSS" if is_stop_loss else "TRAILING_TP"
+                pct = (current_price - entry) / entry
+                
+                print(f"⚡ {reason} TRIGGERED: {symbol} @ {current_price:.2f} (Entry: {entry:.2f}, High: {high_wm:.2f}, PnL: {pct:.1%})")
+                
+                # C. EXECUTE SALE
+                # 1. Real Trade
+                order_target_percent(symbol=symbol, percent=0, position_side=PositionSide_Long, order_type=OrderType_Market)
+                
+                # 2. Virtual Update
+                t.sell(symbol, current_price)
+                dirty_wallet = True
+    
+    # D. Persist State if any trade happened
+    if dirty_wallet:
+        context.rpm.save_state()
 
     # 6. Synchronize Internal Bookkeeping with Broker
     # Since it's 15:00, orders will be queued for T+1 Open execution
