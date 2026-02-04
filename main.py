@@ -15,9 +15,9 @@ ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022a
 
 TOP_N = 4                 # 选前N只
 REBALANCE_PERIOD_T = 10   # 每T个交易日调仓一次
-STOP_LOSS = 0.20          # 止损 15%
-TRAILING_TRIGGER = 0.15   # 15% 开启追踪止盈
-TRAILING_DROP = 0.03      # 回落 3% 止盈退出
+STOP_LOSS = float(os.environ.get('OPT_STOP_LOSS', 0.20))
+TRAILING_TRIGGER = float(os.environ.get('OPT_TRAILING_TRIGGER', 0.15))
+TRAILING_DROP = float(os.environ.get('OPT_TRAILING_DROP', 0.03))
 
 
 
@@ -329,50 +329,50 @@ def init(context):
             print(f"Warning: Failed to fetch Benchmark {MACRO_BENCHMARK} API: {e}")
 
     else:
-        # Backtest Mode: Force API Usage (Consistent with Step 2 Logic)
-        print("📉 Backtest Mode: Fetching history from GM API (Ensuring consistency)...")
+        # Backtest Mode: Force API Usage with Cache
+        cache_file = os.path.join(config.BASE_DIR, "backtest_data_cache.pkl")
         
-        # Calculate time range: Need buffer because Strategy needs MA250 etc.
-        # Fetch 1 year data BEFORE backtest start date.
-        start_dt = pd.Timestamp(START_DATE) - timedelta(days=365)
-        start_time = start_dt.strftime('%Y-%m-%d %H:%M:%S')
-        end_time = END_DATE
-        
-        print(f"   Fetching Data Range: {start_time} -> {end_time}")
-        
-        # --- A. 获取标的行情 (Batch) ---
-        all_symbols = list(context.whitelist)
-        symbol_str = ",".join(all_symbols)
-        
-        try:
-            # Note: For large backtests, if symbol_str is huge, this might need chunking.
-            # Assuming whitelist size is reasonable (<200).
-            hd = history(symbol=symbol_str, frequency='1d', start_time=start_time, end_time=end_time, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+        if os.path.exists(cache_file):
+            print(f"📉 Backtest Mode: Loading data from cache {cache_file}...")
+            try:
+                cache_data = pd.read_pickle(cache_file)
+                context.prices_df = cache_data['prices']
+                context.benchmark_df = cache_data['benchmark']
+                print(f"✓ Cache Loaded: {context.prices_df.shape}")
+            except Exception as e:
+                print(f"⚠️ Failed to load cache: {e}, fetching from API...")
+                os.remove(cache_file)
+                
+        if not hasattr(context, 'prices_df') or context.prices_df.empty:
+            print("📉 Backtest Mode: Fetching history from GM API (Ensuring consistency)...")
             
-            if not hd.empty:
-                hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
-                context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
-                print(f"✓ Data Ready: {context.prices_df.shape} (API)")
-            else:
-                print("⚠️ Critical: API returned empty history data for backtest!")
+            # Calculate time range
+            start_dt = pd.Timestamp(START_DATE) - timedelta(days=365)
+            start_time = start_dt.strftime('%Y-%m-%d %H:%M:%S')
+            end_time = END_DATE
+            
+            all_symbols = list(context.whitelist)
+            symbol_str = ",".join(all_symbols)
+            
+            try:
+                hd = history(symbol=symbol_str, frequency='1d', start_time=start_time, end_time=end_time, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+                if not hd.empty:
+                    hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
+                    context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
+                
+                bm_hd = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_time, end_time=end_time, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+                if not bm_hd.empty:
+                    bm_hd['eob'] = pd.to_datetime(bm_hd['eob']).dt.tz_localize(None)
+                    context.benchmark_df = bm_hd.set_index('eob')['close'].sort_index()
+                
+                # Save to cache
+                if not context.prices_df.empty and context.benchmark_df is not None:
+                    pd.to_pickle({'prices': context.prices_df, 'benchmark': context.benchmark_df}, cache_file)
+                    print(f"💾 Backtest data cached to {cache_file}")
+            except Exception as e:
+                print(f"⚠️ Error fetching/caching data: {e}")
                 context.prices_df = pd.DataFrame()
-        except Exception as e:
-            print(f"⚠️ Error fetching backtest data from API: {e}")
-            context.prices_df = pd.DataFrame()
-
-        # --- B. 获取宏观基准行情 (Macro) ---
-        try:
-            bm_hd = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_time, end_time=end_time, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
-            if not bm_hd.empty:
-                bm_hd['eob'] = pd.to_datetime(bm_hd['eob']).dt.tz_localize(None)
-                context.benchmark_df = bm_hd.set_index('eob')['close'].sort_index()
-                print(f"✓ Benchmark {MACRO_BENCHMARK} Review: {len(context.benchmark_df)} days (API).")
-            else:
                 context.benchmark_df = None
-                print(f"Warning: Benchmark {MACRO_BENCHMARK} API data empty.")
-        except Exception as e:
-            context.benchmark_df = None
-            print(f"Warning: Failed to fetch Benchmark {MACRO_BENCHMARK} from API: {e}")
             
         # === CRITICAL SAFETY CHECK ===
         # If Benchmark is missing, the Macro-Gate will fail (defaulting to 1.0 exposure),
@@ -925,10 +925,15 @@ def on_bar(context, bars):
     context.rpm.nav_history.append(total_equity)
 
 def on_backtest_finished(context, indicator):
-    print(f"\n=== GM STANDARD REPORT (T+1 EXECUTION) ===")
+    print(f"\n=== GM STANDARD REPORT ===")
     print(f"Return: {indicator.get('pnl_ratio', 0)*100:.2f}%")
     print(f"Max DD: {indicator.get('max_drawdown', 0)*100:.2f}%")
     print(f"Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
+    
+    # Final Result for Matrix Search
+    res_pnl = indicator.get('pnl_ratio', 0) * 100
+    res_dd = indicator.get('max_drawdown', 0) * 100
+    print(f"RESULT_SUMMARY|{STOP_LOSS}|{TRAILING_TRIGGER}|{TRAILING_DROP}|{res_pnl:.2f}|{res_dd:.2f}")
     
     # Calculate Simulated Performance (T-Close Execution)
     # history = context.rpm.nav_history
@@ -951,11 +956,12 @@ if __name__ == '__main__':
     # === 运行模式配置 ===
     # 'BACKTEST': 回测模式 (跑历史数据)
     # 'LIVE': 实盘/仿真模式 (连接终端实时交易)
-    RUN_MODE = 'BACKTEST' 
+    # RUN_MODE = 'MODE_LIVE' 
+    RUN_MODE = 'MODE_BACKTEST' 
 
     # 策略 ID (请确保与掘金终端里的策略 ID 一致)
     STRATEGY_ID = 'aea75195-00dd-11f1-866a-00ffda9d6e63'
-    if RUN_MODE == 'LIVE':
+    if RUN_MODE == 'MODE_LIVE':
         print(f"🚀 正在启动仿真/实盘交易...")
         print(f"⚠️ 请确认已在掘金终端将账户 [658419cf-ffe1-11f0-a908-00163e022aa6] 绑定到策略 [{STRATEGY_ID}]")
         
