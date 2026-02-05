@@ -212,8 +212,102 @@ class RollingPortfolioManager:
                         remaining -= remove_qty
                         if remaining <= 0: break
 
+# === 硬核风控常量 ===
+MAX_DAILY_LOSS_PCT = 0.04   # 单日亏损超过 4% -> 熔断 (只卖不买)
+MAX_ORDER_VAL_PCT = 0.25    # 单笔订单最大占比 (防止乌龙指满仓)
+MAX_REJECT_COUNT = 5        # 单日废单容忍度
+DATA_TIMEOUT_SEC = 180      # 数据延迟容忍 (3分钟)
+
+class RiskController:
+    """宪兵队：凌驾于策略之上的硬风控"""
+    def __init__(self):
+        self.initial_nav_today = 0.0
+        self.reject_count = 0
+        self.active = True
+        self.last_day = None
+
+    def on_day_start(self, context):
+        current_day = context.now.date()
+        if self.last_day != current_day:
+            # 新的一天，重置数据
+            acc = context.account()
+            if acc:
+                # 注意：实盘通常用 cash.nav，回测用 cash.nav
+                self.initial_nav_today = acc.cash.nav
+            self.reject_count = 0
+            self.active = True
+            self.last_day = current_day
+            print(f"�️ [RISK] Day Start: NAV Locked at {self.initial_nav_today:.2f}")
+
+    def check_daily_loss(self, context):
+        """检查单日亏损是否触达熔断线"""
+        acc = context.account()
+        if not acc or self.initial_nav_today <= 0: return True
+        
+        current_nav = acc.cash.nav
+        dd_pct = 1 - (current_nav / self.initial_nav_today)
+        
+        if dd_pct > MAX_DAILY_LOSS_PCT:
+            if self.active:
+                print(f"🧨 [RISK MELTDOWN] Daily Loss {dd_pct:.2%} > Limit {MAX_DAILY_LOSS_PCT:.2%}. TRADING HALTED.")
+                self.active = False
+                # 可选：此处可添加清仓逻辑，或仅停止开新仓
+            return False # 熔断中
+        return True # 正常
+
+    def validate_order(self, context, symbol, value, total_scan_val):
+        """检查单笔订单合规性"""
+        if not self.active: return False
+        
+        # 1. 检查单笔金额占比
+        if total_scan_val > 0 and (value / total_scan_val) > MAX_ORDER_VAL_PCT + 0.05: # 给5%容错
+            print(f"🛡️ [RISK] Order Reject: {symbol} Val {value:.0f} > Max {MAX_ORDER_VAL_PCT:.0%} of NAV")
+            return False
+            
+        return True
+
+class DataGuard:
+    """数据质检员：防止脏数据和延迟数据杀人"""
+    @staticmethod
+    def check_freshness(ticks, current_dt):
+        """检查行情是否 '新鲜'"""
+        if not ticks: return False
+        
+        # 取一个代表性 tick 检查时间
+        # 注意：ticks 是 list of dict
+        try:
+            tick_time = ticks[0].get('created_at', None) # GM SDK tick 结构需确认
+            if tick_time:
+                # 转换 tick_time 到 datetime (假设是 utc 或 local，需对齐)
+                # 这里做简单的时间差检查（需确保 context.now 和 tick_time 时区一致）
+                pass 
+                # 暂略：实盘中若 API 返回的数据滞后超过 3 分钟，视为断流
+        except:
+            pass
+        return True
+
+    @staticmethod
+    def align_adjust(hist_price, curr_price):
+        """
+        复权对齐检查 (非常重要!)
+        实盘 current 往往是不复权的，已下载的 history 是前复权的。
+        如果不处理，价格会跳空。
+        
+        简单处理方案：不直接比较绝对价格，而是比较 '涨幅'。
+        或者：假设实盘当日不做除权除息（低概率事件），强行信任。
+        
+        但在 ETF 轮动中，最坑的是 '分红日'。
+        如果实盘遇到分红大幅低开，策略可能误判为暴跌止损。
+        """
+        # 工程化 TODO: 接入 corporate_action 数据，当日有分红则跳过该标的交易
+        pass
+
+# 全局单例
+if 'risk_safe' not in globals():
+    risk_safe = RiskController()
+
 def init(context):
-    print(f"🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...")
+    print(f"�🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...")
     context.rpm = RollingPortfolioManager()
     context.mode = MODE_BACKTEST if os.environ.get('GM_MODE', 'BACKTEST').upper() == 'BACKTEST' else MODE_LIVE
     
@@ -262,6 +356,9 @@ def init(context):
     subscribe(symbols=list(context.whitelist) if context.mode == MODE_LIVE else 'SHSE.000001', frequency='60s' if context.mode == MODE_LIVE else '1d')
     exec_time = os.environ.get('OPT_EXEC_TIME', '14:55:00')
     schedule(schedule_func=algo, date_rule='1d', time_rule=exec_time)
+
+# ... (get_market_regime 和 get_ranking 保持不变，接上文) ...
+
 
 def get_market_regime(context, current_dt):
     # 1/2 年线宏通风控 + 20/60日线微观风控
@@ -490,6 +587,6 @@ if __name__ == '__main__':
     RUN_MODE = 'BACKTEST' 
     STRATEGY_ID = '60e6472f-01ac-11f1-a1c0-00ffda9d6e63'
     if RUN_MODE == 'MODE_LIVE':
-        run(strategy_id=STRATEGY_ID, filename='main.py', mode=MODE_LIVE, token=os.getenv('MY_QUANT_TGM_TOKEN'))
+        run(strategy_id=STRATEGY_ID, filename='main1.py', mode=MODE_LIVE, token=os.getenv('MY_QUANT_TGM_TOKEN'))
     else:
-        run(strategy_id=STRATEGY_ID, filename='main.py', mode=MODE_BACKTEST, token=os.getenv('MY_QUANT_TGM_TOKEN'), backtest_start_time=START_DATE, backtest_end_time=END_DATE, backtest_adjust=ADJUST_PREV, backtest_initial_cash=1000000, backtest_commission_ratio=0.0001)
+        run(strategy_id=STRATEGY_ID, filename='main1.py', mode=MODE_BACKTEST, token=os.getenv('MY_QUANT_TGM_TOKEN'), backtest_start_time=START_DATE, backtest_end_time=END_DATE, backtest_adjust=ADJUST_PREV, backtest_initial_cash=1000000, backtest_commission_ratio=0.0001)

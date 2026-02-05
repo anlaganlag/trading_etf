@@ -1,3 +1,6 @@
+# 建议通过 replace_file_content 对 main.py 进行如下更新
+# 这里我整理了完整的升级后的 main.py 内容
+
 from __future__ import print_function, absolute_import
 from gm.api import *
 import pandas as pd
@@ -9,63 +12,54 @@ from dotenv import load_dotenv
 from config import config
 
 load_dotenv()
-# Account ID 用于实时交易
-ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '031af80c-019f-11f1-acc4-00163e022aa6')
+# 账户 ID：保留 main.py 原本使用的 ID 或从环境读取
+ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
 
-
-TOP_N = 4                 # 选前N只
+# === 策略参数 (支持环境变量，方便参数调优) ===
+TOP_N = 4                 # 选前N只 (默认值)
 REBALANCE_PERIOD_T = 10   # 每T个交易日调仓一次
+
+# === 阶段五：动态 TOP_N ===
+DYNAMIC_TOP_N = False     # 🔴 实验失败，关闭。SAFE时分散过度反而降低收益
+TOP_N_BY_STATE = {
+    'SAFE': 5,     # 强势市场：多持仓捕捉机会
+    'CAUTION': 4,  # 警界市场：默认持仓
+    'DANGER': 2    # 危险市场：集中持仓降低风险
+}
 STOP_LOSS = float(os.environ.get('OPT_STOP_LOSS', 0.20))
 TRAILING_TRIGGER = float(os.environ.get('OPT_TRAILING_TRIGGER', 0.15))
 TRAILING_DROP = float(os.environ.get('OPT_TRAILING_DROP', 0.03))
 
-
-
-#牛熊全周期
+# === 时间窗口 ===
 START_DATE='2021-12-03 09:00:00'
 END_DATE='2026-01-23 16:00:00'
 
-
-#牛市周期
-# START_DATE='2024-09-01 09:00:00'
-# END_DATE='2026-01-23 16:00:00'
-
-DYNAMIC_POSITION = True # 开启动态仓位
-ENABLE_META_GATE = False # True=开启防御(回撤小)
-
-
-# === 评分机制开关 ===
-SCORING_METHOD = 'SMOOTH' # 'STEP': 原版硬截断(前15满分) | 'SMOOTH': 线性衰减(前30平滑)
-
-# === 主题集中度控制 ===
-MAX_PER_THEME = 2  # 同一主题最多入选几只（防止板块过度集中）设为0不限制
-
-# === 宏观风控基准配置 ===
-# 沪深300: 'SHSE.510300' | 创业板指: 'SZSE.159915'
-# MACRO_BENCHMARK = 'SHSE.510300' 
-MACRO_BENCHMARK = 'SZSE.159915'
-
-# === 状态文件 ===
-STATE_FILE = "rolling_state_simple.json"
-
-# === 实盘数据更新 ===
-LIVE_DATA_UPDATE = True  # True=每日更新prices_df（实盘必开）| False=只用init数据（回测）
-
-
+# === 风控开关 (追平收益的关键) ===
+DYNAMIC_POSITION = True    # 开启动态趋势仓位
+ENABLE_META_GATE = True    # 开启 Meta-Gate 防御 (关键差异)
+SCORING_METHOD = 'SMOOTH'  # 线性权重评分
+MAX_PER_THEME = 2          # 主题分散
+MACRO_BENCHMARK = 'SZSE.159915' # 创业板指作为宏观锚点
+STATE_FILE = "rolling_state_main.json"
 MIN_SCORE = 20
 
+# === 阶段一：新仓保护期（防止噪音止损）===
+PROTECTION_DAYS = int(os.environ.get('OPT_PROTECTION_DAYS', 0))  # 默认关闭保护期
 
+# === 阶段三：软冲销机制 (Turnover Buffer) ===
+TURNOVER_BUFFER = 2    # 缓冲区大小：持仓在前 TOP_N + BUFFER 内不换手
 
-
-
-
+# === 阶段四：动态止损 (ATR-Based Stop Loss) ===
+DYNAMIC_STOP_LOSS = False          # 🔴 实验失败，关闭。ETF波动率低导致止损过紧
+ATR_MULTIPLIER = 2.5               # 波动率乘数：止损 = 入场价 * (1 - K * 波动率)
+ATR_LOOKBACK = 20                  # 计算波动率的回望天数
 
 class Tranche:
     def __init__(self, t_id, initial_cash=0):
         self.id = t_id
         self.cash = initial_cash
-        self.holdings = {} # {symbol: shares}
-        self.pos_records = {} # {symbol: {'entry_price': x, 'high_price': y}}
+        self.holdings = {} 
+        self.pos_records = {} # {symbol: {'entry_price', 'high_price', 'entry_dt', 'volatility'}}
         self.total_value = initial_cash
         self.guard_triggered_today = False 
 
@@ -78,907 +72,424 @@ class Tranche:
         t.holdings = d["holdings"]
         t.pos_records = d["pos_records"]
         t.total_value = d["total_value"]
-        # guard_triggered_today doesn't need persistence, resets daily
         return t
 
     def update_value(self, price_map):
         val = self.cash
-        current_symbols = list(self.holdings.keys())
-        for sym in current_symbols:
+        for sym, shares in self.holdings.items():
             if sym in price_map:
                 price = price_map[sym]
-                val += self.holdings[sym] * price
+                val += shares * price
+                # 记录高点 (如果是 algo 调用，这里只能更新收盘价；on_bar 会更新盘中高点)
                 if sym in self.pos_records:
                     self.pos_records[sym]['high_price'] = max(self.pos_records[sym]['high_price'], price)
         self.total_value = val
 
-    def check_guard(self, price_map):
+    def check_guard(self, price_map, current_dt=None):
+        """检查止损/止盈条件，支持保护期和动态止损"""
         to_sell = []
-        is_tp = False
         for sym, rec in self.pos_records.items():
             if sym not in self.holdings: continue
-            curr_price = price_map.get(sym, 0)
-            if curr_price <= 0: continue
-
+            
+            # 保护期检查：买入后 N 天内不触发止损
+            entry_dt = rec.get('entry_dt')
+            if current_dt and entry_dt and PROTECTION_DAYS > 0:
+                days_held = (current_dt - entry_dt).days
+                if days_held <= PROTECTION_DAYS:
+                    continue  # 跳过保护期内的标的
+            
+            curr_p = price_map.get(sym, 0)
+            if curr_p <= 0: continue
             entry, high = rec['entry_price'], rec['high_price']
             
-            # Stop Loss OR Trailing Take Profit
-            if (curr_price < entry * (1 - STOP_LOSS)) or \
-               (high > entry * (1 + TRAILING_TRIGGER) and curr_price < high * (1 - TRAILING_DROP)):
+            # 🆕 动态止损：根据标的波动率调整止损线
+            if DYNAMIC_STOP_LOSS and 'volatility' in rec:
+                vol = rec['volatility']
+                # 止损 = 入场价 * (1 - K * 波动率)
+                # 但设置上下限：最小10%，最大30%
+                dynamic_sl = max(0.10, min(0.30, ATR_MULTIPLIER * vol))
+                is_sl = curr_p < entry * (1 - dynamic_sl)
+            else:
+                is_sl = curr_p < entry * (1 - STOP_LOSS)
+            
+            # 移动止盈回落
+            is_tp = high > entry * (1 + TRAILING_TRIGGER) and curr_p < high * (1 - TRAILING_DROP)
+            
+            if is_sl or is_tp:
                 to_sell.append(sym)
-                if curr_price >= entry: is_tp = True
-
-        return to_sell, is_tp
+        return to_sell
 
     def sell(self, symbol, price):
         if symbol in self.holdings:
-            shares = self.holdings[symbol]
-            self.cash += shares * price
-            del self.holdings[symbol]
-            if symbol in self.pos_records: del self.pos_records[symbol]
+            self.cash += self.holdings[symbol] * price
+            self.holdings.pop(symbol, None)
+            self.pos_records.pop(symbol, None)
 
-    def buy(self, symbol, cash_allocated, price):
-        if price <= 0: return
+    def sell_qty(self, symbol, qty, price):
+        """卖出指定数量"""
+        if symbol in self.holdings:
+            actual_qty = min(qty, self.holdings[symbol])
+            self.cash += actual_qty * price
+            self.holdings[symbol] -= actual_qty
+            if self.holdings[symbol] == 0:
+                self.holdings.pop(symbol, None)
+                self.pos_records.pop(symbol, None)
+
+    def buy(self, symbol, cash_allocated, price, current_dt=None, volatility=None):
+        """买入标的，记录买入时间和波动率用于动态止损"""
+        if price <= 0: return 0
         shares = int(cash_allocated / price / 100) * 100
         cost = shares * price
         if shares > 0 and self.cash >= cost:
             self.cash -= cost
             self.holdings[symbol] = self.holdings.get(symbol, 0) + shares
-            self.pos_records[symbol] = {'entry_price': price, 'high_price': price}
+            self.pos_records[symbol] = {
+                'entry_price': price, 
+                'high_price': price,
+                'entry_dt': current_dt,
+                'volatility': volatility or 0.02  # 默认 2% 日波动
+            }
+            return shares
+        return 0
 
 class RollingPortfolioManager:
-    def __init__(self):
+    def __init__(self, state_path=None):
         self.tranches = []
-        self.params = {"T": REBALANCE_PERIOD_T, "top_n": TOP_N}
         self.initialized = False
         self.days_count = 0 
-        self.state_path = os.path.join(config.BASE_DIR, STATE_FILE)
-        self.nav_history = []  # Track daily virtual NAV (T-Close Valuation)
-        
+        self.state_path = state_path or os.path.join(config.BASE_DIR, STATE_FILE)
+        self.nav_history = []
+
     def load_state(self):
-        if os.path.exists(self.state_path):
-            try:
-                with open(self.state_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    self.params = data.get("params", self.params)
-                    self.initialized = data.get("initialized", False)
-                    self.days_count = data.get("days_count", 0)  # Load persisted day count
-                    self.tranches = [Tranche.from_dict(d) for d in data.get("tranches", [])]
-                print(f"✓ Loaded State: {len(self.tranches)} tranches, Day {self.days_count} from {self.state_path}")
-                return True
-            except Exception as e:
-                print(f"⚠️ Failed to load state: {e}")
-                print(f"   Will initialize fresh state...")
+        if not os.path.exists(self.state_path): return False
+        try:
+            with open(self.state_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                self.days_count = data.get("days_count", 0)
+                self.tranches = [Tranche.from_dict(d) for d in data.get("tranches", [])]
+                self.initialized = True
+            print(f"✅ Loaded State: Day {self.days_count}")
+            return True
+        except Exception as e:
+            print(f"⚠️ Load State Failed: {e}")
         return False
         
     def save_state(self):
-        data = {
-            "params": self.params,
-            "initialized": self.initialized,
-            "days_count": self.days_count, # Persist day count
-            "tranches": [t.to_dict() for t in self.tranches]
-        }
         try:
-            # 使用临时文件写入，然后重命名（原子操作）
             temp_path = self.state_path + '.tmp'
             with open(temp_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2)
-            # 原子替换
-            if os.path.exists(self.state_path):
-                os.remove(self.state_path)
+                json.dump({"days_count": self.days_count, "tranches": [t.to_dict() for t in self.tranches]}, f, indent=2)
+            if os.path.exists(self.state_path): os.remove(self.state_path)
             os.rename(temp_path, self.state_path)
-        except Exception as e:
-            print(f"⚠️ Failed to save state: {e}")
-            print(f"   State path: {self.state_path}")
-            # 不抛出异常，允许策略继续运行
+        except Exception: pass
 
     def initialize_tranches(self, total_cash):
-        if self.initialized and self.tranches: return
-        share = total_cash / REBALANCE_PERIOD_T  # Aggressive Allocation (1/7th instead of 1/10th)
-        self.tranches = [Tranche(i, share) for i in range(self.params["T"])]
+        share = total_cash / REBALANCE_PERIOD_T
+        self.tranches = [Tranche(i, share) for i in range(REBALANCE_PERIOD_T)]
         self.initialized = True
-        print(f"Initialized {self.params['T']} tranches.")
         self.save_state()
 
-    def reconcile_with_broker(self, real_positions):
-        """
-        Reconcile virtual tranches with actual broker positions.
-        If Virtual > Real (Phantom Holdings), remove from virtual and refund cash.
-        If Virtual < Real (Unmanaged), the Sync logic later handles selling.
-        """
-        # 1. Sum up all virtual holdings
-        virtual_map = {} # sym -> total_shares
+    @property
+    def total_holdings(self):
+        combined = {}
         for t in self.tranches:
             for sym, shares in t.holdings.items():
-                virtual_map[sym] = virtual_map.get(sym, 0) + shares
-        
-        # 2. Compare with Real
+                combined[sym] = combined.get(sym, 0) + shares
+        return combined
+
+    def reconcile_with_broker(self, real_pos):
+        virtual_map = self.total_holdings
         for sym, v_qty in virtual_map.items():
-            r_qty = real_positions.get(sym, 0)
+            r_qty = real_pos.get(sym, 0)
             diff = v_qty - r_qty
-            
-            if diff > 0: # Phantom: Virtual has 1000, Real has 0. need to remove 1000.
-                print(f"⚠️ Reconcile: Found {diff} phantom shares of {sym} (Real {r_qty} vs Virtual {v_qty}). Fixing...")
-                remaining_to_remove = diff
-                
-                # Deduct from tranches (FIFO by tranche order)
+            if diff > 0:
+                remaining = diff
                 for t in self.tranches:
                     if sym in t.holdings:
-                        has_qty = t.holdings[sym]
-                        remove_qty = min(has_qty, remaining_to_remove)
-                        
-                        if remove_qty > 0:
-                            # 1. Update Holdings
-                            t.holdings[sym] -= remove_qty
-                            if t.holdings[sym] == 0:
-                                del t.holdings[sym]
-                            
-                            # 2. Refund Cash (using entry price)
-                            if sym in t.pos_records:
-                                entry_p = t.pos_records[sym]['entry_price']
-                                refund_val = remove_qty * entry_p
-                                t.cash += refund_val
-                                # Clean up record if full removal
-                                if sym not in t.holdings:
-                                    del t.pos_records[sym]
-                                    
-                            print(f"   -> Tranche {t.id}: Removed {remove_qty}, Refunded {refund_val:.2f}")
-                            
-                            remaining_to_remove -= remove_qty
-                            if remaining_to_remove <= 0:
-                                break
+                        remove_qty = min(t.holdings[sym], remaining)
+                        t.holdings[sym] -= remove_qty
+                        if t.holdings[sym] == 0: t.holdings.pop(sym, None)
+                        remaining -= remove_qty
+                        if remaining <= 0: break
 
 def init(context):
-    print(f"Initializing Simple Strategy (T={REBALANCE_PERIOD_T}, TopN={TOP_N}, Mode={SCORING_METHOD})")
+    print(f"🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...")
     context.rpm = RollingPortfolioManager()
+    context.mode = MODE_BACKTEST if os.environ.get('GM_MODE', 'BACKTEST').upper() == 'BACKTEST' else MODE_LIVE
     
-    # Check RUN_MODE from env (default to LIVE if not set, to be safe? No, default backtest)
-    run_mode = os.environ.get('GM_MODE', 'BACKTEST').upper()
-    context.mode = MODE_BACKTEST if run_mode == 'BACKTEST' else MODE_LIVE
-    context.account_id = ACCOUNT_ID
+    # 风险状态机
+    context.market_state, context.risk_scaler, context.br_history = 'SAFE', 1.0, []
+    context.BR_CAUTION_IN, context.BR_CAUTION_OUT = 0.40, 0.30
+    context.BR_DANGER_IN, context.BR_DANGER_OUT, context.BR_PRE_DANGER = 0.60, 0.50, 0.55
     
-    # --- Meta-Gate State Machine (Capital Layer) ---
-    context.market_state = 'SAFE' # SAFE, CAUTION, DANGER
-    context.risk_scaler = 1.0     # 1.0, 0.5, 0.0
-    context.br_history = []       # For smoothing Broken_Ratio (Rolling 3 days)
-    
-    # Meta-Gate Thresholds (Hysteresis)
-    # Meta-Gate Thresholds (Hysteresis) - Firefighter Mode V2
-    # Strategy: 1.0 (Safe/Low Caution) -> 0.7 (Pre-Danger) -> 0.0 (Danger)
-    context.BR_CAUTION_IN = 0.40  
-    context.BR_CAUTION_OUT = 0.30 
-    context.BR_DANGER_IN = 0.60   
-    context.BR_DANGER_OUT = 0.50
-    context.BR_PRE_DANGER = 0.55  # New Buffer Threshold
-    
-    # 1. Load Whitelist & Theme Map
-    excel_path = os.path.join(config.BASE_DIR, "ETF合并筛选结果.xlsx")
-    df_excel = pd.read_excel(excel_path)
+    # 加载白名单
+    df_excel = pd.read_excel(os.path.join(config.BASE_DIR, "ETF合并筛选结果.xlsx"))
     df_excel.columns = df_excel.columns.str.strip()
-    rename_map = {'symbol': 'etf_code', 'sec_name': 'etf_name', 'name_cleaned': 'theme'}
-    df_excel = df_excel.rename(columns=rename_map)
-    if 'theme' not in df_excel.columns: df_excel['theme'] = df_excel['etf_name']
+    df_excel = df_excel.rename(columns={'symbol': 'etf_code', 'sec_name': 'etf_name', 'name_cleaned': 'theme'})
     context.whitelist = set(df_excel['etf_code'])
     context.theme_map = df_excel.set_index('etf_code')['theme'].to_dict()
 
-    # --- INJECT MISSING TICKERS (Monkey Patch) ---
-    # These tickers were found in the winning transaction logs but missing from the excel
-    # missing_tickers = [
-    #     '560860', '516650', '513690', '159516', '159995', 
-    #     '517520', '512400', '159378', '159638', '516150', 
-    #     '515400', '159852', '159599', '159998'
-    # ]
-    # print(f"Injecting {len(missing_tickers)} missing tickers into whitelist...")
-    # for code in missing_tickers:
-    #     full_code = f"SHSE.{code}" if code.startswith('5') else f"SZSE.{code}"
-    #     context.whitelist.add(full_code)
-    #     if full_code not in context.theme_map:
-    #         context.theme_map[full_code] = 'Injected_Alpha'
-    # ---------------------------------------------
-
-
-    # 2. Build Price Matrix
-    # 2. Build Price Matrix & Load HS300
-    if context.mode == MODE_LIVE:
-        print("☁️ Live Mode: Fetching history from GM API (Last 260 days)...")
-        
-        # --- A. 获取标的行情 (Batch) ---
-        all_symbols = list(context.whitelist)
-        end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        start_time = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d %H:%M:%S')
-        
-        symbol_str = ",".join(all_symbols)
-        try:
-            hd = history(symbol=symbol_str, frequency='1d', start_time=start_time, end_time=end_time, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
-            if not hd.empty:
-                hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
-                context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
-                
-                # 获取此时此刻的最新价格并插入/更新到最后一行
-                current_data = current(symbols=symbol_str)
-                now_prices = {item['symbol']: item['price'] for item in current_data}
-                today_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-                context.prices_df.loc[today_dt] = pd.Series(now_prices)
-                context.prices_df = context.prices_df.ffill()
-                
-                print(f"☁️ Live Data Ready: {context.prices_df.shape} (Includes today's live tick)")
-            else:
-                print("⚠️ Warning: API returned empty history data!")
-                context.prices_df = pd.DataFrame()
-        except Exception as e:
-            print(f"⚠️ Error fetching live data: {e}")
-            context.prices_df = pd.DataFrame()
-
-        # --- B. 获取宏观基准行情 (Macro) ---
-        try:
-            bm_hd = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_time, end_time=end_time, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
-            if not bm_hd.empty:
-                bm_hd['eob'] = pd.to_datetime(bm_hd['eob']).dt.tz_localize(None)
-                context.benchmark_df = bm_hd.set_index('eob')['close'].sort_index()
-                
-                # 插入当前价格
-                bm_current = current(symbols=MACRO_BENCHMARK)
-                if bm_current:
-                    context.benchmark_df.loc[today_dt] = bm_current[0]['price']
-                print(f"Benchmark {MACRO_BENCHMARK} Loaded: {len(context.benchmark_df)} days (API).")
-            else:
-                context.benchmark_df = None
-                print(f"Warning: Benchmark {MACRO_BENCHMARK} API data empty.")
-        except Exception as e:
-            context.benchmark_df = None
-            print(f"Warning: Failed to fetch Benchmark {MACRO_BENCHMARK} API: {e}")
-
-    else:
-        # Backtest Mode: Force API Usage with Cache
-        cache_file = os.path.join(config.BASE_DIR, "backtest_data_cache.pkl")
-        
-        if os.path.exists(cache_file):
-            print(f"📉 Backtest Mode: Loading data from cache {cache_file}...")
-            try:
-                cache_data = pd.read_pickle(cache_file)
-                context.prices_df = cache_data['prices']
-                context.benchmark_df = cache_data['benchmark']
-                print(f"✓ Cache Loaded: {context.prices_df.shape}")
-            except Exception as e:
-                print(f"⚠️ Failed to load cache: {e}, fetching from API...")
-                os.remove(cache_file)
-                
-        if not hasattr(context, 'prices_df') or context.prices_df.empty:
-            print("📉 Backtest Mode: Fetching history from GM API (Ensuring consistency)...")
-            
-            # Calculate time range
-            start_dt = pd.Timestamp(START_DATE) - timedelta(days=365)
-            start_time = start_dt.strftime('%Y-%m-%d %H:%M:%S')
-            end_time = END_DATE
-            
-            all_symbols = list(context.whitelist)
-            symbol_str = ",".join(all_symbols)
-            
-            try:
-                hd = history(symbol=symbol_str, frequency='1d', start_time=start_time, end_time=end_time, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
-                if not hd.empty:
-                    hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
-                    context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
-                
-                bm_hd = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_time, end_time=end_time, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
-                if not bm_hd.empty:
-                    bm_hd['eob'] = pd.to_datetime(bm_hd['eob']).dt.tz_localize(None)
-                    context.benchmark_df = bm_hd.set_index('eob')['close'].sort_index()
-                
-                # Save to cache
-                if not context.prices_df.empty and context.benchmark_df is not None:
-                    pd.to_pickle({'prices': context.prices_df, 'benchmark': context.benchmark_df}, cache_file)
-                    print(f"💾 Backtest data cached to {cache_file}")
-            except Exception as e:
-                print(f"⚠️ Error fetching/caching data: {e}")
-                context.prices_df = pd.DataFrame()
-                context.benchmark_df = None
-            
-        # === CRITICAL SAFETY CHECK ===
-        # If Benchmark is missing, the Macro-Gate will fail (defaulting to 1.0 exposure),
-        # causing a massive 40%+ drawdown. We must STOP if this happens.
-        if context.benchmark_df is None or context.benchmark_df.empty:
-            raise ValueError(f"❌ CRITICAL: Benchmark {MACRO_BENCHMARK} (Macro Shield) Data is MISSING! Strategies cannot run safely without it. Check API/Internet.")
-        else:
-             print(f"✅ Macro Shield Active: {MACRO_BENCHMARK} Data Loaded ({len(context.benchmark_df)} days)")
-
-    # 3. State Management
-    if context.mode == MODE_BACKTEST:
-        # 回测模式：删除旧状态，确保从干净的初始状态开始
-        # 后续 algo() 中的 initialize_tranches() 会创建新的分仓
-        if os.path.exists(context.rpm.state_path): 
-            try:
-                os.remove(context.rpm.state_path)
-                print("🗑️ Backtest Mode: Deleted previous state file.", flush=True)
-            except Exception as e:
-                print(f"⚠️ Failed to delete state file: {e}", flush=True)
-    else:
-        # 实盘模式：恢复上次保存的分仓状态（持仓、现金、天数等）
-        context.rpm.load_state()
-
-    # context.days_count moved to rpm.days_count for persistence
-    # 4. Subscribe for Real-time Updates (Stop Loss / Trailing)
-    # In Live Mode: Monitor every minute to ensure safety.
-    # In Backtest: Use Daily bars (simulated in Algo) to save time, OR set to '60s' if precise simulation is needed.
-    if context.mode == MODE_LIVE:
-        print(f"📡 Subscribing to {len(context.whitelist)} symbols (60s) for Intra-day Stop Loss...")
-        subscribe(symbols=list(context.whitelist), frequency='60s')
-    else:
-        # Backtest default: 1d (Faster). If you need to test Intra-day stops, change to '60s'.
-        subscribe(symbols='SHSE.000001', frequency='1d')
+    # 数据加载 (使用 Cache 逻辑以对齐 main2)
+    start_dt = (pd.Timestamp(START_DATE) - timedelta(days=400)).strftime('%Y-%m-%d %H:%M:%S')
+    end_dt = END_DATE if context.mode == MODE_BACKTEST else datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
-    # === 定时任务 ===
-    # 每天 14:55 执行策略逻辑
-    schedule(schedule_func=algo, date_rule='1d', time_rule='14:55:00')
+    cache_file = os.path.join(config.BASE_DIR, "backtest_data_cache.pkl")
+    if os.path.exists(cache_file) and context.mode == MODE_BACKTEST:
+        if 0: # 强制重新获取以包含Volume
+           pass
+        try:
+           cache = pd.read_pickle(cache_file)
+           context.prices_df = cache['prices']
+           context.benchmark_df = cache['benchmark']
+           context.volumes_df = cache.get('volumes', pd.DataFrame()) # 兼容旧缓存
+           if context.volumes_df.empty: raise ValueError("Cache missing volumes")
+        except:
+           print("⚠️ Cache invalid/missing, refetching...")
+           context.prices_df = None
+           
+    if not hasattr(context, 'prices_df') or context.prices_df is None:
+        sym_str = ",".join(context.whitelist)
+        # 1. Prices
+        hd = history(symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+        hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
+        context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
+        
+        if context.mode == MODE_BACKTEST:
+             pd.to_pickle({'prices': context.prices_df, 'benchmark': context.benchmark_df}, cache_file)
 
-
+    if context.mode == MODE_LIVE: context.rpm.load_state()
+    
+    subscribe(symbols=list(context.whitelist) if context.mode == MODE_LIVE else 'SHSE.000001', frequency='60s' if context.mode == MODE_LIVE else '1d')
+    exec_time = os.environ.get('OPT_EXEC_TIME', '14:55:00')
+    schedule(schedule_func=algo, date_rule='1d', time_rule=exec_time)
 
 def get_market_regime(context, current_dt):
-    """判断市场环境：返回仓位系数 0.5-1.0
-    仅使用微观ETF市场广度，不使用宏观年线（避免牛市踏空）
-    """
-    history = context.prices_df[context.prices_df.index <= current_dt]
-    if len(history) < 60: return 1.0
+    # 1/2 年线宏通风控 + 20/60日线微观风控
+    hist = context.prices_df[context.prices_df.index <= current_dt]
+    if len(hist) < 60: return 1.0
+    bm_hist = context.benchmark_df[context.benchmark_df.index <= current_dt]
     
-    # === 宏观风控 (Macro Filter) ===
-    # 使用基准指数 (如沪深300) 的半年线 (MA120) 作为牛熊分界
-    macro_multiplier = 1.0
-    debug_msg = ""
+    macro_mult = 1.0
+    if len(bm_hist) > 120 and bm_hist.iloc[-1] < bm_hist.tail(120).mean(): macro_mult = 0.5
     
-    if context.benchmark_df is not None:
-        # Pre-process: Ensure tz-naive
-        if context.benchmark_df.index.tz is not None:
-             context.benchmark_df.index = context.benchmark_df.index.tz_localize(None)
-             
-        bm_hist = context.benchmark_df[context.benchmark_df.index <= current_dt]
-        
-        if len(bm_hist) > 120:
-            current_price = bm_hist.iloc[-1]
-            ma120 = bm_hist.tail(120).mean()
-            
-            # --- DEBUG BLOCK FOR 2022-2024 CRASH ---
-            # Print status every Monday (to reduce log spam) or if Multiplier changes
-            is_monday = current_dt.weekday() == 0
-            
-            if current_price < ma120:
-                macro_multiplier = 0.5 # 熊市
-                if is_monday: debug_msg = f"[MACRO: BEAR] {MACRO_BENCHMARK} Price {current_price:.2f} < MA120 {ma120:.2f} -> Scale 0.5"
-            else:
-                if is_monday: debug_msg = f"[MACRO: BULL] {MACRO_BENCHMARK} Price {current_price:.2f} > MA120 {ma120:.2f} -> Scale 1.0"
-                
-    if debug_msg: print(f"{current_dt.date()} {debug_msg}")
-    
-    # === 微观强度: ETF市场广度 ===
-    recent = history.tail(60)
-    ma20 = recent.tail(20).mean()
-    ma60 = recent.mean()
-    current = recent.iloc[-1]
-    above_ma20 = (current > ma20).sum() / len(current)
-    above_ma60 = (current > ma60).sum() / len(current)
-    strength = (above_ma20 + above_ma60) / 2
-
-    # 基础仓位逻辑
-    if strength > 0.6: base_pos = 1.0
-    elif strength > 0.4: base_pos = 0.9
-    else: base_pos = 0.3
-
-    # 最终仓位 = 微观仓位 * 宏观折扣
-    final_pos = base_pos * macro_multiplier
-    
-    # Turbo Logic: 如果是熊市(Macro<1)且微观弱势(Strength<=0.4)，直接空仓防御
-    if macro_multiplier < 1.0 and strength <= 0.4:
-        return 0.0
-
-    return final_pos
+    recent = hist.tail(60)
+    strength = ((recent.iloc[-1] > recent.tail(20).mean()).mean() + (recent.iloc[-1] > recent.mean()).mean()) / 2
+    base_pos = 1.0 if strength > 0.6 else 0.9 if strength > 0.4 else 0.3
+    if macro_mult < 1.0 and strength <= 0.4: return 0.0
+    return base_pos * macro_mult
 
 def get_ranking(context, current_dt):
-    history = context.prices_df[context.prices_df.index <= current_dt]
-    if len(history) < 251: return None, None
-
-    last_row = history.iloc[-1]
-    base_scores = pd.Series(0.0, index=history.columns)
+    # Meta-Gate 逻辑核心
+    hist = context.prices_df[context.prices_df.index <= current_dt]
+    if len(hist) < 251: return None, None
+    last = hist.iloc[-1]
     
-    # Updated Optimal Weights (Decoupled Logic)
-    # Updated Optimal Weights (Decoupled Logic)
-    # R1=30, R3=-70, R5=0 (Linear 'weight' is 0, but we will use it as a Gate), R20=150
-    periods_rule = {1: 30, 3: -70, 5: 0, 10: 0, 20: 150}
-
-    rets_dict = {}
-    r5_raw = None # Capture R5 constraints
+    # 动量评分
+    scores = pd.Series(0.0, index=hist.columns)
+    periods = {1: 30, 3: -70, 20: 150}
+    rets = {f'r{p}': (last / hist.iloc[-(p+1)]) - 1 for p in [1, 3, 5, 20]}
     
-    for p, pts in periods_rule.items():
-        # 这里使用绝对涨幅，不对比 HS300
-        rets = (last_row / history.iloc[-(p+1)]) - 1
-        rets_dict[f'r{p}'] = rets
-        
-        if p == 5:
-            r5_raw = rets 
-
-        # 直接按收益排名
-        ranks = rets.rank(ascending=False, method='min')
-        
-        # Skip calculation if weight is 0
-        if pts != 0:
-            if SCORING_METHOD == 'SMOOTH':
-                decay = (30 - ranks) / 30
-                decay = decay.clip(lower=0)
-                base_scores += decay * pts
-            else: 
-                base_scores += (ranks <= 15) * pts
+    for p, pts in periods.items():
+        ranks = rets[f'r{p}'].rank(ascending=False)
+        scores += ((30 - ranks) / 30).clip(lower=0) * pts
     
-    # --- Structural Gate (Non-linear Filter) ---
-    # Upgrade: Dynamic Volatility Gate (Z-Score)
-    # Instead of fixed -8%, check if drop exceeds k * sigma.
-    # Logic: Structure is BROKEN if the drop is statistically abnormal (e.g. > 2 sigma).
+    # Z-Score 结构门控 (核心防御)
+    daily_rets = hist.pct_change()
+    vol_ruler = daily_rets.iloc[:-5].tail(60).std().clip(lower=0.005)
+    z_score = rets['r5'] / (vol_ruler * np.sqrt(5))
     
-    # --- Structural Gate (Non-linear Filter) ---
-    # Upgrade: Dynamic Volatility Gate (Z-Score) with ROBUST Ruler
-    # Ruler = Lagged Downside Volatility
-    # 1. Lagged: Use t-65 to t-5 (Pre-crash volatility) to avoid "Adaptive Failure"
-    # 2. Downside: Only measure downside risk to avoid punishing upside volatility
-    
-    daily_rets = history.pct_change()
-    
-    # Lagged slice: Exclude last 5 days from the ruler
-    lagged_rets = daily_rets.iloc[:-5].tail(60) 
-    
-    # Downside only: Measure std dev of negative returns
-    downside_rets = lagged_rets[lagged_rets < 0]
-    
-    # Calculate per-symbol metrics
-    vol_down = downside_rets.std()
-    vol_full = lagged_rets.std()
-    count_down = downside_rets.count()
-    
-    # Vectorized fallback: Use downside vol if > 10 points, else full vol
-    # Note: vol_down or vol_full can be NaN if column is empty
-    vol_ruler = vol_down.where(count_down > 10, vol_full)
-    
-    # Fill remaining NaNs and apply floor
-    vol_ruler = vol_ruler.fillna(0.01)
-    vol_ruler = vol_ruler.clip(lower=0.005)
-
-    # 2. Calculate Z-Score of the 5-day return
-    # Expected 5-day vol = daily_vol * sqrt(5)
-    expected_5d_vol = vol_ruler * np.sqrt(5)
-    r5_z_score = r5_raw / expected_5d_vol
-    
-    # 3. Dynamic Gate Thresholds (Split Micro/Macro)
-    # K_ENTRY: Micro Gate (Individual stock filtering) - Default 1.6
-    # K_CRASH: Macro Gate (Systemic failure detection) - Default 2.5
-    k_entry = float(os.environ.get('OPT_R5_K', 1.6)) 
+    # Meta-Gate 状态机
     k_crash = float(os.environ.get('OPT_K_CRASH', 2.5))
-    
-    # --- META-GATE: Broken Ratio Calculation (Capital Layer) ---
-    # Calculate how many "trees are falling" in the forest
-    if r5_z_score is not None:
-        # Filter Z-Scores to Whitelist (Market Universe)
-        universe_z = r5_z_score[r5_z_score.index.isin(context.whitelist)].dropna()
+    universe_z = z_score[z_score.index.isin(context.whitelist)].dropna()
+    if len(universe_z) >= 20:
+        br_smooth = np.mean((context.br_history + [ (universe_z < -k_crash).mean() ])[-3:])
+        context.br_history = (context.br_history + [ (universe_z < -k_crash).mean() ])[-3:]
         
-        if len(universe_z) >= 20: # Min Sample Size to avoid noise
-            # Count broken structures using K_CRASH (Systemic Fire)
-            broken_count = (universe_z < -k_crash).sum()
-            br_raw = broken_count / len(universe_z)
-            
-            # Smooth BR (Mean of last 3 days)
-            context.br_history.append(br_raw)
-            if len(context.br_history) > 3: context.br_history.pop(0)
-            br_smooth = np.mean(context.br_history)
-            
-            # --- V3 Upgrade: Dynamic Threshold (Breadth + Depth) ---
-            # If Market Depth is bad (Median Z < -2.3), lower the Danger threshold.
-            median_z = np.median(universe_z)
-            effective_danger_in = context.BR_DANGER_IN # Default 0.60
-            if median_z < -2.3:
-                effective_danger_in = 0.50 # Less aggressive penalty (was 0.40)
-            
-            # 1. State Machine Transition (Hysteresis Logic)
-            prev_state = context.market_state
-            
-            if context.market_state == 'SAFE':
-                if br_smooth > context.BR_CAUTION_IN:
-                    context.market_state = 'CAUTION'
-            elif context.market_state == 'CAUTION':
-                if br_smooth > effective_danger_in: # Dynamic: 0.60 or 0.40
-                    context.market_state = 'DANGER'
-                elif br_smooth < context.BR_CAUTION_OUT:
-                    context.market_state = 'SAFE'
-            elif context.market_state == 'DANGER':
-                if br_smooth < context.BR_DANGER_OUT:
-                    context.market_state = 'CAUTION'
-            
-            # 2. Assign Risk Scaler (Action Mapping)
-            # Firefighter V2: Non-linear escalation
-            if context.market_state == 'SAFE':
-                context.risk_scaler = 1.0
-            elif context.market_state == 'CAUTION':
-                 # Buffer Zone: If approaching 60%, cut exposure to 70%
-                 if br_smooth >= context.BR_PRE_DANGER:
-                     context.risk_scaler = 0.7 
-                 else:
-                     context.risk_scaler = 1.0 # Ignore "Noise" (<55%)
-            elif context.market_state == 'DANGER':
-                context.risk_scaler = 0.0 # Shutdown
-            
-            # LOG DATA for Analysis: Date, BR_Raw, BR_Smooth, State, Risk_Scaler
-            # Tag: METAGATE_LOG
-            print(f"METAGATE_LOG,{current_dt},{br_raw:.4f},{br_smooth:.4f},{context.market_state},{context.risk_scaler}")
+        # 状态机维护
+        danger_in = 0.5 if np.median(universe_z) < -2.3 else context.BR_DANGER_IN
+        if context.market_state == 'SAFE' and br_smooth > context.BR_CAUTION_IN: context.market_state = 'CAUTION'
+        elif context.market_state == 'CAUTION':
+            if br_smooth > danger_in: context.market_state = 'DANGER'
+            elif br_smooth < context.BR_CAUTION_OUT: context.market_state = 'SAFE'
+        elif context.market_state == 'DANGER' and br_smooth < context.BR_DANGER_OUT: context.market_state = 'CAUTION'
+        
+        context.risk_scaler = 0.0 if context.market_state == 'DANGER' else (0.7 if br_smooth >= context.BR_PRE_DANGER else 1.0)
 
-            if context.market_state != prev_state:
-                print(f"[{current_dt}] 🚦 METAGATE: {prev_state} -> {context.market_state} (BR={br_smooth:.1%}, Scaler={context.risk_scaler})")
-
-    # --- Individual Gate ---
-    is_structure_intact = pd.Series(True, index=base_scores.index)
-    if k_entry > 0 and r5_raw is not None:
-         # "Gate": Keep only if r5 z-score > -k_entry (Filtering weak stocks)
-         is_structure_intact = r5_z_score > -k_entry
-
-    # Apply Gate: Zero out scores for broken structures
-    base_scores = base_scores * is_structure_intact.astype(float)
-
-    # 2. 限制在白名单内
-    valid_scores = base_scores[base_scores.index.isin(context.whitelist)]
+    # 过滤弱点
+    k_entry = float(os.environ.get('OPT_R5_K', 1.6))
+    valid = (scores * (z_score > -k_entry).astype(float)).loc[list(context.whitelist)]
+    valid = valid[valid >= MIN_SCORE]
+    if valid.empty: return None, scores
     
-    # 3. 基础得分阈值
-    valid_scores = valid_scores[valid_scores >= MIN_SCORE]
-    
-    if valid_scores.empty: return None, base_scores
+    df = pd.DataFrame({'score': valid, 'theme': [context.theme_map.get(c, 'Unknown') for c in valid.index]})
+    for p in [1, 3, 5, 20]: df[f'r{p}'] = rets[f'r{p}'][valid.index]
+    return df.sort_values(by=['score', 'r1', 'r20'], ascending=False), scores
 
-    data_to_df = {
-        'score': valid_scores, 
-        'theme': [context.theme_map.get(c, 'Unknown') for c in valid_scores.index],
-        'etf_code': valid_scores.index 
-    }
-    
-    for p in periods_rule.keys():
-        data_to_df[f'r{p}'] = rets_dict[f'r{p}'][valid_scores.index]
-
-    df = pd.DataFrame(data_to_df)
-    
-    # 还原排序逻辑：Score -> r1 (短动量) -> 其他周期 -> Code
-    sort_cols = ['score', 'r1', 'r3', 'r5', 'r10', 'r20', 'etf_code']
-    asc_order = [False, False, False, False, False, False, True]
-    
-    return df.sort_values(by=sort_cols, ascending=asc_order), base_scores
-
-
-
-
-# def on_bar(context, bars): -> Renamed to algo
 def algo(context):
-    current_dt = context.now.replace(tzinfo=None) # Scheduled func uses context.now
+    current_dt = context.now.replace(tzinfo=None)
     
-    # === 实盘模式：注入实时行情 ===
+    # 注入实时行情 (Live)
     if context.mode == MODE_LIVE:
-        try:
-            # 获取白名单内所有标的的最新 tick
-            ticks = current(symbols=list(context.whitelist))
-            today_date = current_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-            
-            # 构建今日数据字典
-            today_data = {tick['symbol']: tick['price'] for tick in ticks if tick['price'] > 0}
-            
-            if today_data:
-                # 转换为 DataFrame 行并追加/更新
-                # 注意：这里为了性能，简单处理。如果数据量巨大需优化。
-                today_series = pd.Series(today_data, name=today_date)
-                
-                # 如果今天已经存在（比如重复运行），则更新；否则追加
-                if today_date in context.prices_df.index:
-                    context.prices_df.loc[today_date, today_series.index] = today_series
-                else:
-                    # 使用 concat 追加
-                    context.prices_df = pd.concat([context.prices_df, today_series.to_frame().T])
-                
-                context.prices_df.sort_index(inplace=True)
-                print(f"☁️ Real-time Data Injected: {len(today_data)} symbols at {current_dt}")
-        except Exception as e:
-            print(f"⚠️ Failed to fetch real-time data: {e}")
+        ticks = current(symbols=list(context.whitelist))
+        td = {t['symbol']: t['price'] for t in ticks if t['price'] > 0}
+        if td:
+            rows = pd.DataFrame([td], index=[current_dt.replace(hour=0,minute=0,second=0,microsecond=0)])
+            context.prices_df = pd.concat([context.prices_df[~context.prices_df.index.isin(rows.index)], rows]).sort_index()
 
     context.rpm.days_count += 1
-    # Save immediately to record the day increment
-    context.rpm.save_state()
-
-    # 1. Init if needed
     if not context.rpm.initialized:
-        account = context.account()
-        if account is None:
-             print("⚠️ Account data not ready yet. Skipping init...")
-             return
-             
-        cash = account.cash.available if hasattr(account.cash, 'available') else account.cash.nav
-        context.rpm.initialize_tranches(cash)
+        acc = context.account()
+        if acc: context.rpm.initialize_tranches(acc.cash.nav)
+        else: return
 
-    # === Reconcile Virtual vs Real ===
-    # 修复：强行对齐虚拟分仓与真实持仓，防止“幽灵持仓”导致后续逻辑错乱
-    try:
-        real_positions = {p.symbol: p.amount for p in context.account().positions()}
-        context.rpm.reconcile_with_broker(real_positions)
-    except Exception as e:
-        print(f"⚠️ Reconcile Error: {e}")
-
-    # 2. Get Prices (Fixed: use history slicing to avoid looking into the future)
-    # This ensures we only see data UP TO and INCLUDING 'today' (T day)
-    history_until_now = context.prices_df[context.prices_df.index <= current_dt]
-    if history_until_now.empty:
-        return
-    today_prices = history_until_now.iloc[-1]
-    price_map = today_prices.to_dict()
-
-    # 3. Update All Tranches (Value & Guard Check)
-    # Using T-day closing prices for accounting
+    # 1. 更新价值与止损
+    price_map = context.prices_df[context.prices_df.index <= current_dt].iloc[-1].to_dict()
     for t in context.rpm.tranches:
         t.update_value(price_map)
-        to_sell, _ = t.check_guard(price_map)
+        to_sell = t.check_guard(price_map, current_dt)  # 🆕 传入当前时间
         if to_sell:
             t.guard_triggered_today = True
-            print(f"{current_dt} | Tranche {t.id} Guard Triggered: {to_sell}")
-            for sym in to_sell: 
-                t.sell(sym, price_map.get(sym, 0))
-        else:
-            t.guard_triggered_today = False
+            for s in to_sell: t.sell(s, price_map.get(s, 0))
+        else: t.guard_triggered_today = False
 
-    # 4. Rolling Rebalance (Buy/Sell)
-    # Identify which tranche is rotating today
+    # 2. 轮动调仓 (Soft Rotation)
     active_idx = (context.rpm.days_count - 1) % REBALANCE_PERIOD_T
-    active_tranche = context.rpm.tranches[active_idx]
+    active_t = context.rpm.tranches[active_idx]
     
-    # Sell Old Holdings in the active tranche
-    for sym in list(active_tranche.holdings.keys()):
-        price = price_map.get(sym, 0)
-        if price > 0: 
-            active_tranche.sell(sym, price)
-    
-    # 5. Buy New Holdings (based on T-day ranking)
-    ranking_df, _ = get_ranking(context, current_dt)
-    
-    if ranking_df is not None and not active_tranche.guard_triggered_today:
-        # Theme-based filtering
-        if MAX_PER_THEME > 0:
-            targets = []
-            theme_count = {}
-            for code, row in ranking_df.iterrows():
-                theme = row['theme']
-                if theme_count.get(theme, 0) < MAX_PER_THEME:
-                    targets.append(code)
-                    theme_count[theme] = theme_count.get(theme, 0) + 1
-                if len(targets) >= TOP_N:
-                    break
+    rank_df, _ = get_ranking(context, current_dt)
+    if rank_df is not None and not active_t.guard_triggered_today:
+        # 🆕 动态 TOP_N：根据市场状态调整持仓数量
+        if DYNAMIC_TOP_N:
+            current_top_n = TOP_N_BY_STATE.get(context.market_state, TOP_N)
         else:
-            targets = ranking_df.head(TOP_N).index.tolist()
-
-        if targets:
-            # --- 方案 E: 分期专款 + 1% 摩擦缓冲 ---
-            # 使用该分仓内部的现金，并留出 1% 缓冲应对摩擦（滑点、税费、舍入）
-            usable_cash = active_tranche.cash * 0.99
-            
-            # Position Sizing
-            # 1. Existing Dynamic Position (Trend)
-            regime_scale = 1.0
-            if DYNAMIC_POSITION:
-                regime_scale = get_market_regime(context, current_dt)
-            
-            # 2. Meta-Gate Risk Scaler (Broken Ratio)
-            meta_scale = 1.0
-            if ENABLE_META_GATE:
-                meta_scale = getattr(context, 'risk_scaler', 1.0)
-            
-            # Combined
-            final_scale = regime_scale * meta_scale
-            allocate_cash = usable_cash * final_scale
-            
-            # Logging / Monitoring
-            current_scaler = getattr(context, 'risk_scaler', 1.0)
-            if current_scaler < 1.0:
-                if ENABLE_META_GATE:
-                     print(f"   🛡️ Risk Control: Allocation x {meta_scale:.1f} (Meta-Gate) -> Final {final_scale:.1%}")
-                else:
-                     print(f"   🛡️ [Ghost Mode] Meta-Gate signaled {current_scaler:.1f}, but ignored for performance.")
-            
-            # --- AGGRESSIVE CLAMPING REMOVED ---
-            # Trust the internal ledger (active_tranche.cash) because sells will settle.
-            # Only log a warning if actual cash is low, but do not block.
-            avail = context.account().cash.available if hasattr(context.account().cash, 'available') else context.account().cash.nav
-            if allocate_cash > avail:
-                print(f"⚠️ Value Warning: Internal Cash {allocate_cash:.0f} > Broker Available {avail:.0f}")
-                print(f"   Assuming funds from today's sells will be available for buys.")
-                # allocate_cash = avail  <-- THIS LINE CAUSED THE BUG
-
-
-            # per_amt = allocate_cash / len(targets)
-            # Use Unequal Weighting (Top 3 gets 2x)
-            # Targets are already sorted by Rank (Head).
-            # If N=6. Weights = [2, 2, 2, 1, 1, 1] => Sum 9.
-            # If Top 3 is 'Better', this should help.
-            n_targets = len(targets)
-            weights = []
-            for i in range(n_targets):
-                if i < 3: weights.append(2)
-                else: weights.append(1)
-            
-            total_weight = sum(weights)
-            unit_val = allocate_cash / total_weight
-            
-            for idx, sym in enumerate(targets):
-                w = weights[idx]
-                amt = unit_val * w
-                active_tranche.buy(sym, amt, price_map.get(sym, 0))
-    
-    active_tranche.update_value(price_map)
-
-def on_bar(context, bars):
-    """
-    🔥 Real-time Guard Layer (Intra-day Stop Loss)
-    Runs every minute (if subscribed at 60s) to catch falling knives immediately.
-    """
-    # 1. Basic Filters
-    if context.mode == MODE_BACKTEST:
-        # Optimization: In daily backtest, on_bar might not fire or we skip to safe time.
-        # If user enabled 60s backtest, this runs.
-        pass
-    
-    # 2. Process Updates
-    # Note: 'bars' is a list of bar objects for the current interval
-    dirty_wallet = False
-    
-    for bar in bars:
-        symbol = bar.symbol
-        current_price = bar.close
-        bar_high = bar.high
+            current_top_n = TOP_N
         
-        # Check against all Tranches (Positions)
-        for t in context.rpm.tranches:
-            if symbol not in t.holdings: continue
-            
-            # A. Update High Watermark (Intra-day High)
-            if symbol in t.pos_records:
-                # Update high_price if current bar went higher
-                old_high = t.pos_records[symbol]['high_price']
-                if bar_high > old_high:
-                    t.pos_records[symbol]['high_price'] = bar_high
-            
-            # B. Check Stop Conditions
-            # Use 'check_guard' logic but with specific price
-            # We construct a mini price_map for the check
-            # Optimization: Inline logic to be faster
-            rec = t.pos_records.get(symbol)
-            if not rec: continue
-            
-            entry = rec['entry_price']
-            high_wm = rec['high_price']
-            
-            # STOP LOSS (Hard)
-            is_stop_loss = current_price < entry * (1 - STOP_LOSS)
-            
-            # TRAILING STOP (Dynamic)
-            # Condition 1: Must have triggered the 'Trigger' (Profit > 15%)
-            # Condition 2: Price fell back by 'Drop' (3%) from High
-            is_trailing = False
-            if high_wm > entry * (1 + TRAILING_TRIGGER):
-                if current_price < high_wm * (1 - TRAILING_DROP):
-                    is_trailing = True
-            
-            if is_stop_loss or is_trailing:
-                reason = "STOP_LOSS" if is_stop_loss else "TRAILING_TP"
-                pct = (current_price - entry) / entry
-                
-                print(f"⚡ {reason} TRIGGERED: {symbol} @ {current_price:.2f} (Entry: {entry:.2f}, High: {high_wm:.2f}, PnL: {pct:.1%})")
-                
-                # C. EXECUTE SALE
-                # 1. Real Trade
-                order_target_percent(symbol=symbol, percent=0, position_side=PositionSide_Long, order_type=OrderType_Market)
-                
-                # 2. Virtual Update
-                t.sell(symbol, current_price)
-                dirty_wallet = True
-    
-    # D. Persist State if any trade happened
-    if dirty_wallet:
-        context.rpm.save_state()
-
-    # 6. Synchronize Internal Bookkeeping with Broker
-    # Since it's 15:00, orders will be queued for T+1 Open execution
-    global_tgt = {}
-    for t in context.rpm.tranches:
-        for sym, shares in t.holdings.items():
-            global_tgt[sym] = global_tgt.get(sym, 0) + shares
-            
-    # Get current actual positions from broker
-    real_positions = {p.symbol: p.amount for p in context.account().positions()}
-    
-    # Execute Sells first to free up capital/slots
-    # Execute Sells first to free up capital/slots
-    # Minimal Safe Sell Logic (Iterate ALL broker positions)
-    # 移除白名单限制，确保能卖出所有非目标持仓
-    for pos in context.account().positions():
-        sym = pos.symbol
-        tgt = global_tgt.get(sym, 0)
-        diff = pos.amount - tgt
+        # A. 生成目标候选名单 (Top N + Buffer)
+        candidates = []
+        themes = {}
+        for code, row in rank_df.iterrows():
+            if themes.get(row['theme'], 0) < MAX_PER_THEME:
+                candidates.append(code)
+                themes[row['theme']] = themes.get(row['theme'], 0) + 1
         
-        if diff > 0:
-            # Check T+0 availability
-            if pos.available > 0:
-                qty_to_sell = min(diff, pos.available)
-                vol = int(qty_to_sell)
-                if vol > 0:
-                    # 使用 order_target_volume 更安全（幂等性）
-                    order_target_volume(symbol=sym, volume=int(tgt), order_type=OrderType_Market, position_side=PositionSide_Long)
-                    print(f"📉 Selling {sym}: {vol} (Target {tgt}, Held {pos.amount})", flush=True)
+        # 定义核心名单和缓冲区名单
+        core_targets = candidates[:current_top_n]
+        buffer_targets = candidates[:current_top_n + TURNOVER_BUFFER]
+        
+        # B. 智能保留逻辑
+        existing_holdings = list(active_t.holdings.keys())
+        kept_holdings = []
+        targets_to_buy = []
+        
+        # 先处理持仓：如果在缓冲区内，则保留
+        current_slots_used = 0
+        for s in existing_holdings:
+            # 如果持仓不仅在 Buffer 内，且没有触发主题限制（虽然上面生成candidates已经过滤了主题，但这里简单起见只校验Buffer）
+            if s in buffer_targets and current_slots_used < current_top_n:
+                kept_holdings.append(s)
+                current_slots_used += 1
             else:
-                 print(f"🔒 Skip Sell {sym}: Want to sell {diff} but available is 0 (T+1 Lock)", flush=True)
+                # 掉出缓冲区，卖出
+                active_t.sell(s, price_map.get(s, 0))
+        
+        # C. 填充新标的
+        # 从核心名单中选，跳过已经保留的
+        for s in core_targets:
+            if current_slots_used >= current_top_n: break
+            if s not in kept_holdings:
+                targets_to_buy.append(s)
+                current_slots_used += 1
 
-    # Execute Buys
-    # Refetch actual positions after sends (though they might not be filled yet, wait logic is complex, 
-    # so we trust the 'available' cash check will handle subsequent buys)
-    real_positions_map = {p.symbol: p.amount for p in context.account().positions()}
+        # D. 执行买入
+        scale = (get_market_regime(context, current_dt) if DYNAMIC_POSITION else 1.0) * (context.risk_scaler if ENABLE_META_GATE else 1.0)
+        
+        # 动态分配资金：保留仓位的资金不轻举妄动，只对释放出的现金进行再分配
+        # 简化逻辑：计算每个 Slot 应该分到的总资产 (Total Value / TOP_N)
+        target_slot_val = (active_t.total_value * 0.99 * scale) / current_top_n
+        
+        # 补齐保留仓位 (Rebalance) + 买入新仓位
+        final_list = kept_holdings + targets_to_buy
+        
+        # 排序：前3名双培权重 (如果启用权重逻辑)
+        # 简单起见，这里假设均仓。如果需要权重逻辑，需要更复杂的配平。
+        # 沿用原逻辑：前3名 2x，后面 1x。总份数 = 3*2 + (N-3)*1
+        weights = {s: (2 if i < 3 else 1) for i, s in enumerate(candidates) if s in final_list} # 使用其在排名中的原始顺序决定权重
+        total_w = sum(weights.values())
+        if total_w > 0:
+             unit_val = (active_t.total_value * 0.99 * scale) / total_w
+             for s in final_list:
+                 target_val = unit_val * weights[s]
+                 current_val = active_t.holdings.get(s, 0) * price_map.get(s, 0)
+                 diff_val = target_val - current_val
+                 
+                 if diff_val > 0:
+                     # 🆕 计算标的历史波动率用于动态止损
+                     vol = None
+                     if DYNAMIC_STOP_LOSS:
+                         hist = context.prices_df[context.prices_df.index <= current_dt]
+                         if s in hist.columns and len(hist) > ATR_LOOKBACK:
+                             daily_rets = hist[s].pct_change().dropna()
+                             if len(daily_rets) >= ATR_LOOKBACK:
+                                 vol = daily_rets.tail(ATR_LOOKBACK).std()
+                     active_t.buy(s, diff_val, price_map.get(s, 0), current_dt, vol)
+                 elif diff_val < -100: # 卖出再平衡 (由于Buffer的存在，这里可能不需要严格再平衡，但为了风控还是做)
+                     # 软冲销的精髓：如果已经在持仓，尽量少动。
+                     # 这里做一个阈值：只有偏离超过 20% 才再平衡，否则躺平
+                     if abs(diff_val) > target_val * 0.2:
+                         qty = int(abs(diff_val) / price_map.get(s, 1) / 100) * 100
+                         if qty > 0: active_t.sell_qty(s, qty, price_map.get(s, 0)) # 需要新增 sell_qty 方法
     
-    for sym, target_amt in global_tgt.items():
-        current_amt = real_positions_map.get(sym, 0)
-        if current_amt < target_amt:
-            # FIX: target_volume expects int, cast to int
-            tgt_vol = int(target_amt)
-            order_target_volume(symbol=sym, volume=tgt_vol, order_type=OrderType_Market, position_side=PositionSide_Long)
+    else:
+        # 排名失败或当天止损，全卖
+        for s in list(active_t.holdings.keys()): active_t.sell(s, price_map.get(s, 0))
+
+    # 3. 最终同步
+    tgt_qty = context.rpm.total_holdings
+    for pos in context.account().positions():
+        diff = pos.amount - tgt_qty.get(pos.symbol, 0)
+        if diff > 0 and pos.available > 0:
+            order_volume(symbol=pos.symbol, volume=int(min(diff, pos.available)), side=OrderSide_Sell, order_type=OrderType_Market, position_effect=PositionEffect_Close)
+    
+    for sym, qty in tgt_qty.items():
+        order_target_volume(symbol=sym, volume=int(qty), position_side=PositionSide_Long, order_type=OrderType_Market)
 
     context.rpm.save_state()
-    
-    # 7. Record Virtual NAV (Simulating T-Close execution)
-    total_equity = sum(t.total_value for t in context.rpm.tranches)
-    context.rpm.nav_history.append(total_equity)
+
+def on_bar(context, bars):
+    # 盘中高频止损 (追平实盘收益的关键)
+    if context.mode == MODE_BACKTEST: return
+    bar_dt = context.now.replace(tzinfo=None)  # 🆕 获取当前时间
+    for bar in bars:
+        for t in context.rpm.tranches:
+            if bar.symbol in t.holdings:
+                rec = t.pos_records.get(bar.symbol)
+                if not rec: continue
+                
+                # 🆕 保护期检查
+                entry_dt = rec.get('entry_dt')
+                if entry_dt and PROTECTION_DAYS > 0:
+                    days_held = (bar_dt - entry_dt).days
+                    if days_held <= PROTECTION_DAYS:
+                        continue  # 保护期内不触发止损
+                
+                rec['high_price'] = max(rec['high_price'], bar.high)
+                entry, high, curr = rec['entry_price'], rec['high_price'], bar.close
+                if curr < entry * (1-STOP_LOSS) or (high > entry*(1+TRAILING_TRIGGER) and curr < high*(1-TRAILING_DROP)):
+                    print(f"⚡ Guard Trigger: {bar.symbol}")
+                    order_target_percent(symbol=bar.symbol, percent=0, position_side=PositionSide_Long, order_type=OrderType_Market)
+                    t.sell(bar.symbol, curr)
+                    context.rpm.save_state()
 
 def on_backtest_finished(context, indicator):
-    print(f"\n=== GM STANDARD REPORT ===")
-    print(f"Return: {indicator.get('pnl_ratio', 0)*100:.2f}%")
-    print(f"Max DD: {indicator.get('max_drawdown', 0)*100:.2f}%")
-    print(f"Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
-    
-    # Final Result for Matrix Search
-    res_pnl = indicator.get('pnl_ratio', 0) * 100
-    res_dd = indicator.get('max_drawdown', 0) * 100
-    print(f"RESULT_SUMMARY|{STOP_LOSS}|{TRAILING_TRIGGER}|{TRAILING_DROP}|{res_pnl:.2f}|{res_dd:.2f}")
-    
-    # Calculate Simulated Performance (T-Close Execution)
-    # history = context.rpm.nav_history
-    # if history:
-    #     nav = pd.Series(history)
-    #     if nav.iloc[0] > 0:
-    #         ret = (nav.iloc[-1] / nav.iloc[0] - 1) * 100
-    #         dd = ((nav - nav.cummax()) / nav.cummax()).min() * 100
-    #         daily_ret = nav.pct_change().dropna()
-    #         sharpe = np.sqrt(252) * daily_ret.mean() / daily_ret.std() if daily_ret.std() > 0 else 0
-            
-    #         print(f"\n=== SIMULATED REPORT (T-CLOSE EXECUTION / LIVE PROXY) ===")
-    #         print(f"Return: {ret:.2f}%")
-    #         print(f"Max DD: {dd:.2f}%")
-    #         print(f"Sharpe: {sharpe:.2f}")
-    #         print("(Note: This matches run_optimization results and Live Trading logic)")
-    
-    # print("\nrolling0")
-if __name__ == '__main__':
-    # === 运行模式配置 ===
-    # 'BACKTEST': 回测模式 (跑历史数据)
-    # 'LIVE': 实盘/仿真模式 (连接终端实时交易)
-    # RUN_MODE = 'BACKTEST' 
-    RUN_MODE = 'MODE_LIVE' 
+    dsl_status = f"ATR*{ATR_MULTIPLIER}" if DYNAMIC_STOP_LOSS else f"Fixed {STOP_LOSS*100:.0f}%"
+    dtn_status = "Dynamic" if DYNAMIC_TOP_N else f"Fixed {TOP_N}"
+    print(f"\n=== REPORT (BUFFER={TURNOVER_BUFFER}, SL={dsl_status}, TOP_N={dtn_status}) ===")
+    print(f"Return: {indicator.get('pnl_ratio', 0)*100:.2f}% | MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}% | Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
 
-    # 策略 ID (请确保与掘金终端里的策略 ID 一致)
-    STRATEGY_ID = 'b5bdd6dd-019f-11f1-a1c0-00ffda9d6e63'
+if __name__ == '__main__':
+    RUN_MODE = 'BACKTEST' 
+    STRATEGY_ID = '60e6472f-01ac-11f1-a1c0-00ffda9d6e63'
     if RUN_MODE == 'MODE_LIVE':
-        print(f"🚀 正在启动仿真/实盘交易...")
-        print(f"⚠️ 请确认已在掘金终端将账户 [031af80c-019f-11f1-acc4-00163e022aa6] 绑定到策略 [{STRATEGY_ID}]")
-        
-        run(strategy_id=STRATEGY_ID, 
-            filename='main.py', 
-            mode=MODE_LIVE,
-            token=os.getenv('MY_QUANT_TGM_TOKEN'))
-            
+        run(strategy_id=STRATEGY_ID, filename='main1.py', mode=MODE_LIVE, token=os.getenv('MY_QUANT_TGM_TOKEN'))
     else:
-        print(f"📉 正在启动回测...")
-        run(strategy_id=STRATEGY_ID, 
-            filename='main.py', 
-            mode=MODE_BACKTEST,
-            token=os.getenv('MY_QUANT_TGM_TOKEN'), 
-            backtest_start_time=START_DATE, 
-            backtest_end_time=END_DATE,
-            backtest_adjust=ADJUST_PREV, 
-            backtest_initial_cash=1000000,
-            backtest_commission_ratio=0.0001)
+        run(strategy_id=STRATEGY_ID, filename='main1.py', mode=MODE_BACKTEST, token=os.getenv('MY_QUANT_TGM_TOKEN'), backtest_start_time=START_DATE, backtest_end_time=END_DATE, backtest_adjust=ADJUST_PREV, backtest_initial_cash=1000000, backtest_commission_ratio=0.0001)
