@@ -1,0 +1,12 @@
+--- Testing Data Retrieval for 2024 ---
+Symbol: SHSE.000001
+Range: 2024-01-01 09:00:00 to 2024-12-31 16:00:00
+
+[SUCCESS] Successfully retrieved 2024 data for SHSE.000001!
+Data range in result: 2024-01-02 to 2024-12-31
+Total trading days: 242
+
+--- Testing Data Retrieval for ETF SHSE.510300 ---
+[SUCCESS] Successfully retrieved 2024 data for SHSE.510300!
+Data range in result: 2024-01-02 to 2024-12-31
+Total trading days: 242
