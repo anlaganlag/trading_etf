@@ -7,17 +7,19 @@ import pandas as pd
 import numpy as np
 import os
 import json
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+from config import config
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
-from config import config
+
+# ... (Previous imports)
 
 load_dotenv()
-# 账户 ID：用户指定
-ACCOUNT_ID = '031af80c-019f-11f1-acc4-00163e022aa6'
+# 账户 ID：保留 main.py 原本使用的 ID 或从环境读取
+ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
 
 # === 策略参数 (支持环境变量，方便参数调优) ===
 TOP_N = 4                 # 选前N只 (默认值)
@@ -216,259 +218,15 @@ class RollingPortfolioManager:
                         remaining -= remove_qty
                         if remaining <= 0: break
 
-# === 硬核风控常量 ===
-MAX_DAILY_LOSS_PCT = 0.04   # 单日亏损超过 4% -> 熔断 (只卖不买)
-MAX_ORDER_VAL_PCT = 0.25    # 单笔订单最大占比 (防止乌龙指满仓)
-MAX_REJECT_COUNT = 5        # 单日废单容忍度
-DATA_TIMEOUT_SEC = 180      # 数据延迟容忍 (3分钟)
-
-class RiskController:
-    """宪兵队：凌驾于策略之上的硬风控"""
-    def __init__(self):
-        self.initial_nav_today = 0.0
-        self.reject_count = 0
-        self.active = True
-        self.last_day = None
-
-    def on_day_start(self, context):
-        current_day = context.now.date()
-        if self.last_day != current_day:
-            # 新的一天，重置数据
-            acc = context.account(account_id=context.account_id)
-            if acc:
-                # 注意：实盘通常用 cash.nav，回测用 cash.nav
-                self.initial_nav_today = acc.cash.nav
-            self.reject_count = 0
-            self.active = True
-            self.last_day = current_day
-            print(f"�️ [RISK] Day Start: NAV Locked at {self.initial_nav_today:.2f}")
-
-    def check_daily_loss(self, context):
-        """检查单日亏损是否触达熔断线"""
-        acc = context.account(account_id=context.account_id)
-        if not acc or self.initial_nav_today <= 0: return True
-        
-        current_nav = acc.cash.nav
-        dd_pct = 1 - (current_nav / self.initial_nav_today)
-        
-        if dd_pct > MAX_DAILY_LOSS_PCT:
-            if self.active:
-                print(f"🧨 [RISK MELTDOWN] Daily Loss {dd_pct:.2%} > Limit {MAX_DAILY_LOSS_PCT:.2%}. TRADING HALTED.")
-                self.active = False
-                # 可选：此处可添加清仓逻辑，或仅停止开新仓
-            return False # 熔断中
-        return True # 正常
-
-    def validate_order(self, context, symbol, value, total_scan_val):
-        """检查单笔订单合规性"""
-        if not self.active: return False
-        
-        # 1. 检查单笔金额占比
-        if total_scan_val > 0 and (value / total_scan_val) > MAX_ORDER_VAL_PCT + 0.05: # 给5%容错
-            print(f"🛡️ [RISK] Order Reject: {symbol} Val {value:.0f} > Max {MAX_ORDER_VAL_PCT:.0%} of NAV")
-            return False
-            
-        return True
-
-class DataGuard:
-    """数据质检员：防止脏数据和延迟数据杀人"""
-    @staticmethod
-    def check_freshness(ticks, current_dt):
-        """检查行情是否 '新鲜'"""
-        if not ticks: return False
-        
-        # 取一个代表性 tick 检查时间
-        # 注意：ticks 是 list of dict
-        try:
-            tick_time = ticks[0].get('created_at', None) # GM SDK tick 结构需确认
-            if tick_time:
-                # 转换 tick_time 到 datetime (假设是 utc 或 local，需对齐)
-                # 这里做简单的时间差检查（需确保 context.now 和 tick_time 时区一致）
-                pass 
-                # 暂略：实盘中若 API 返回的数据滞后超过 3 分钟，视为断流
-        except:
-            pass
-        return True
-
-    @staticmethod
-    def align_adjust(hist_price, curr_price):
-        """
-        复权对齐检查 (非常重要!)
-        实盘 current 往往是不复权的，已下载的 history 是前复权的。
-        如果不处理，价格会跳空。
-        
-        简单处理方案：不直接比较绝对价格，而是比较 '涨幅'。
-        或者：假设实盘当日不做除权除息（低概率事件），强行信任。
-        
-        但在 ETF 轮动中，最坑的是 '分红日'。
-        如果实盘遇到分红大幅低开，策略可能误判为暴跌止损。
-        """
-        # 工程化 TODO: 接入 corporate_action 数据，当日有分红则跳过该标的交易
-        pass
-
-class EmailNotifier:
-    """战地通讯员：发送每日收盘战报"""
-    def __init__(self):
-        # === 📧 邮件配置 (请修改此处或使用环境变量) ===
-        self.smtp_server = os.environ.get('EMAIL_HOST', 'smtp.163.com')
-        self.smtp_port = int(os.environ.get('EMAIL_PORT', 465)) # SSL端口
-        self.sender = os.environ.get('EMAIL_USER', 'tanjhu@163.com') # 发件人
-        self.password = os.environ.get('EMAIL_PASS', 'KHdqTEPNXViSJpJs') # 🔑 必填：邮箱授权码
-        self.receivers = [os.environ.get('EMAIL_TO', 'tanjhu@163.com')] # 收件人列表
-        
-    def send_report(self, context):
-        """生成并发送 HTML 战报"""
-        if context.mode == MODE_BACKTEST: return # 回测模式默认不轰炸此邮箱
-        
-        try:
-            acc = context.account(account_id=context.account_id)
-            if not acc: return
-            
-            # 1. 核心数据
-            nav = acc.cash.nav
-            cash = acc.cash.available
-            initial = risk_safe.initial_nav_today if 'risk_safe' in globals() else nav
-            ret_pct = (nav - initial) / initial if initial > 0 else 0.0
-            
-            # 2. 持仓列表
-            pos_rows = ""
-            for p in acc.positions():
-                name = context.theme_map.get(p.symbol, p.symbol)
-                color = "red" if p.fpnl > 0 else "green"
-                pos_rows += f"""
-                <tr>
-                    <td>{p.symbol}</td>
-                    <td>{name}</td>
-                    <td>{int(p.amount)}</td>
-                    <td>{p.market_value:.0f}</td>
-                    <td style="color:{color}">{p.fpnl:.0f} ({p.fpnl/p.cost*100:.1f}%)</td>
-                </tr>
-                """
-            if not pos_rows: pos_rows = "<tr><td colspan='5' style='text-align:center'>空仓 (Flat)</td></tr>"
-            
-            # 3. 状态信息
-            state = getattr(context, 'market_state', 'UNKNOWN')
-            status_color = {'SAFE': 'green', 'CAUTION': 'orange', 'DANGER': 'red'}.get(state, 'black')
-            risk_scale = getattr(context, 'risk_scaler', 1.0)
-            
-            # 4. 组装 HTML
-            html_content = f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px;">
-                <h2 style="color: #333;">📈 量化策略日报 ({context.now.strftime('%Y-%m-%d')})</h2>
-                <hr>
-                
-                <h3>资产概览</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li>💰 <b>净值 (NAV):</b> {nav:,.2f}</li>
-                    <li>💵 <b>可用现金:</b> {cash:,.2f}</li>
-                    <li>📊 <b>今日盈亏:</b> <span style="color: {'red' if ret_pct>=0 else 'green'}; font-weight: bold;">{ret_pct:.2%}</span></li>
-                </ul>
-                
-                <h3>风控雷达</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li>🚦 <b>市场状态:</b> <span style="background-color: {status_color}; color: white; padding: 2px 6px; border-radius: 4px;">{state}</span></li>
-                    <li>🛡️ <b>仓位系数:</b> {risk_scale:.1f}x</li>
-                    <li>👮 <b>熔断状态:</b> {'✅ 正常' if risk_safe.active else '❌ 已熔断 (HALTED)'}</li>
-                </ul>
-                
-                <h3>当前持仓</h3>
-                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 14px;">
-                    <tr style="background-color: #f2f2f2;"><th>代码</th><th>名称</th><th>数量</th><th>市值</th><th>浮盈</th></tr>
-                    {pos_rows}
-                </table>
-                
-                <p style="font-size: 12px; color: #888; margin-top: 20px;">
-                    Powered by Scheme J (Special Forces V2) | GM-Quant
-                </p>
-            </div>
-            """
-            
-            # 5. 发送
-            msg = MIMEMultipart()
-            msg['From'] = self.sender
-            msg['To'] = ",".join(self.receivers)
-            icon = "🚀" if ret_pct > 0 else ("🤢" if ret_pct < -0.01 else "😐")
-            msg['Subject'] = Header(f"{icon} 策略战报: {ret_pct:.2%} | NAV {int(nav)}", 'utf-8')
-            msg.attach(MIMEText(html_content, 'html', 'utf-8'))
-            
-            server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port) # 163推荐SSL
-            server.login(self.sender, self.password)
-            server.sendmail(self.sender, self.receivers, msg.as_string())
-            server.quit()
-            print(f"📧 [Email] SUCCESS: Report sent to {self.receivers}")
-            
-        except Exception as e:
-            print(f"⚠️ [Email] ERROR: Send Failed: {e}")
-            import traceback
-            traceback.print_exc()
-
-class WechatNotifier:
-    """通讯兵：企业微信群机器人通知"""
-    def __init__(self):
-        # === 🤖 微信配置 ===
-        # 请替换为您的真实 Webhook 地址 (格式: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxx)
-        self.webhook_url = os.environ.get('WECHAT_WEBHOOK', 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=aa6eb940-0d50-489f-801e-26c467d77a30') 
-        
-    def send_report(self, context):
-        print(f"🤖 [WeChat] Attempting to send report to {self.webhook_url[-10:]}...")
-        if not self.webhook_url:
-            print("🤖 [WeChat] SKIP: Webhook URL is empty.")
-            return
-        if context.mode == MODE_BACKTEST:
-            print("🤖 [WeChat] SKIP: Backtest mode.")
-            return
-        
-        try:
-            import urllib.request
-            
-            acc = context.account(account_id=context.account_id)
-            if not acc:
-                print("🤖 [WeChat] ERROR: No account in context.")
-                return
-            
-            nav = acc.cash.nav
-            initial = risk_safe.initial_nav_today if 'risk_safe' in globals() else nav
-            ret_pct = (nav - initial) / initial if initial > 0 else 0.0
-            ret_color = "warning" if ret_pct >= 0 else "comment" # markdown颜色 hack
-            
-            # 组装 Markdown 消息
-            md_content = f"""# 🚀 量化战报 {context.now.strftime('%m-%d')}
-**净值**: <font color="info">{nav:,.2f}</font>
-**盈亏**: <font color="{ret_color}">{ret_pct:.2%}</font>
-**风控**: `{context.market_state}` (仓位 {context.risk_scaler}x)
-> 持仓详情请查阅邮件
-"""
-            
-            data = {
-                "msgtype": "markdown",
-                "markdown": {"content": md_content}
-            }
-            
-            headers = {'Content-Type': 'application/json'}
-            req = urllib.request.Request(url=self.webhook_url, headers=headers, data=json.dumps(data).encode('utf-8'))
-            resp = urllib.request.urlopen(req)
-            resp_data = resp.read().decode('utf-8')
-            print(f"🤖 [WeChat] SUCCESS: API Response: {resp_data}")
-            
-        except Exception as e:
-            print(f"⚠️ [WeChat] ERROR: Send Failed: {e}")
-            import traceback
-            traceback.print_exc()
-
-# 全局单例
-if 'risk_safe' not in globals(): risk_safe = RiskController()
-if 'mailer' not in globals(): mailer = EmailNotifier()
-if 'wechat' not in globals(): wechat = WechatNotifier()
-
 def init(context):
     print(f"🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...")
-    
-    # 绑定账户
-    context.account_id = ACCOUNT_ID
-    print(f"💳 Connected to Account: {context.account_id}")
-        
     context.rpm = RollingPortfolioManager()
-    context.mode = MODE_LIVE  # 🧪 强制设为实盘模式以触发通知测试 (测试完请改回)
+    # context.mode = MODE_BACKTEST if os.environ.get('GM_MODE', 'BACKTEST').upper() == 'BACKTEST' else MODE_LIVE
+    # 绑定账户 (仅实盘)
+    if context.mode == MODE_LIVE:
+        context.account_id = ACCOUNT_ID
+        
+    print(f"💳 Mode: {context.mode} | Account: {getattr(context, 'account_id', 'BACKTEST')}")
     
     # 风险状态机
     context.market_state, context.risk_scaler, context.br_history = 'SAFE', 1.0, []
@@ -487,49 +245,212 @@ def init(context):
     end_dt = END_DATE if context.mode == MODE_BACKTEST else datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     cache_file = os.path.join(config.BASE_DIR, "backtest_data_cache.pkl")
-    if os.path.exists(cache_file) and context.mode == MODE_BACKTEST:
-        if 0: # 强制重新获取以包含Volume
-           pass
+    need_refetch = True  # 默认需要重新获取
+    USE_CACHE = False    # 🔧 纯 API 模式，不使用缓存
+    
+    if USE_CACHE and os.path.exists(cache_file) and context.mode == MODE_BACKTEST:
         try:
-           cache = pd.read_pickle(cache_file)
-           context.prices_df = cache['prices']
-           context.benchmark_df = cache['benchmark']
-           context.volumes_df = cache.get('volumes', pd.DataFrame()) # 兼容旧缓存
-           if context.volumes_df.empty: raise ValueError("Cache missing volumes")
-        except:
-           print("⚠️ Cache invalid/missing, refetching...")
-           context.prices_df = None
-           
-    if not hasattr(context, 'prices_df') or context.prices_df is None:
+            cache = pd.read_pickle(cache_file)
+            context.prices_df = cache['prices']
+            context.benchmark_df = cache['benchmark']
+            context.volumes_df = cache.get('volumes', pd.DataFrame())
+            # 验证缓存完整性
+            if context.volumes_df.empty:
+                raise ValueError("Cache missing volumes")
+            if context.benchmark_df is None or (hasattr(context.benchmark_df, 'empty') and context.benchmark_df.empty):
+                raise ValueError("Cache missing benchmark")
+            need_refetch = False
+            print("✅ 缓存加载成功")
+        except Exception as e:
+            print(f"⚠️ Cache invalid/missing ({e}), refetching...")
+            context.prices_df = None
+            context.benchmark_df = None  # 🔧 修复: 同时重置 benchmark_df
+            context.volumes_df = None
+            need_refetch = True
+    
+    if need_refetch:
         sym_str = ",".join(context.whitelist)
-        print(f"📡 Fetching data for {len(context.whitelist)} ETFs and Benchmark {MACRO_BENCHMARK}...")
         
         # 1. Prices
+        print("📊 获取价格数据...")
         hd = history(symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
         hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
         context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
         
-        # 2. Benchmark (Fix: Loading MACRO_BENCHMARK)
-        bm_hd = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_dt, end_time=end_dt, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
-        bm_hd['eob'] = pd.to_datetime(bm_hd['eob']).dt.tz_localize(None)
-        context.benchmark_df = bm_hd.set_index('eob')['close'].ffill()
+        # 2. Volumes
+        print("📊 获取成交量数据...")
+        vol_data = history(symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt, fields='symbol,volume,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+        vol_data['eob'] = pd.to_datetime(vol_data['eob']).dt.tz_localize(None)
+        context.volumes_df = vol_data.pivot(index='eob', columns='symbol', values='volume').ffill()
         
-        if context.mode == MODE_BACKTEST:
-             pd.to_pickle({'prices': context.prices_df, 'benchmark': context.benchmark_df}, cache_file)
-             print(f"💾 Data cached to {cache_file}")
+        # 3. Benchmark (🔧 修复: 正确获取基准数据)
+        print(f"📊 获取基准数据 ({MACRO_BENCHMARK})...")
+        bm_data = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_dt, end_time=end_dt, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+        bm_data['eob'] = pd.to_datetime(bm_data['eob']).dt.tz_localize(None)
+        context.benchmark_df = bm_data.set_index('eob')['close']
+        print(f"✅ Benchmark 数据: {len(context.benchmark_df)} 条, 最新: {context.benchmark_df.iloc[-1]:.2f} @ {context.benchmark_df.index[-1]}")
+        
+        # 4. 保存缓存
+        if context.mode == MODE_BACKTEST and USE_CACHE:
+            print("💾 保存缓存...")
+            pd.to_pickle({'prices': context.prices_df, 'benchmark': context.benchmark_df, 'volumes': context.volumes_df}, cache_file)
 
     if context.mode == MODE_LIVE: context.rpm.load_state()
     
     subscribe(symbols=list(context.whitelist) if context.mode == MODE_LIVE else 'SHSE.000001', frequency='60s' if context.mode == MODE_LIVE else '1d')
     exec_time = os.environ.get('OPT_EXEC_TIME', '14:55:00')
     schedule(schedule_func=algo, date_rule='1d', time_rule=exec_time)
-    
-    # 🧪 测试用：启动后立即执行一次 algo (模拟强制交易并触发通知)
-    print("🧪 [TEST] Triggering immediate algo execution for testing...")
-    algo(context)
 
-# ... (get_market_regime 和 get_ranking 保持不变，接上文) ...
+# === 硬核风控常量 ===
+MAX_DAILY_LOSS_PCT = 0.04   # 单日亏损超过 4% -> 熔断 (只卖不买)
+MAX_ORDER_VAL_PCT = 0.25    # 单笔订单最大占比 (防止乌龙指满仓)
+MAX_REJECT_COUNT = 5        # 单日废单容忍度
+DATA_TIMEOUT_SEC = 180      # 数据延迟容忍 (3分钟)
 
+class RiskController:
+    """宪兵队：凌驾于策略之上的硬风控"""
+    def __init__(self):
+        self.initial_nav_today = 0.0
+        self.reject_count = 0
+        self.active = True
+        self.last_day = None
+
+    def on_day_start(self, context):
+        current_day = context.now.date()
+        if self.last_day != current_day:
+            # 新的一天，重置数据
+            acc = context.account(account_id=context.account_id) if context.mode == MODE_LIVE else context.account()
+            if acc:
+                self.initial_nav_today = acc.cash.nav
+            self.reject_count = 0
+            self.active = True
+            self.last_day = current_day
+            print(f"️ [RISK] Day Start: NAV Locked at {self.initial_nav_today:.2f}")
+
+    def check_daily_loss(self, context):
+        """检查单日亏损是否触达熔断线"""
+        acc = context.account(account_id=context.account_id) if context.mode == MODE_LIVE else context.account()
+        if not acc or self.initial_nav_today <= 0: return True
+        
+        current_nav = acc.cash.nav
+        dd_pct = 1 - (current_nav / self.initial_nav_today)
+        
+        if dd_pct > MAX_DAILY_LOSS_PCT:
+            if self.active:
+                print(f"🧨 [RISK MELTDOWN] Daily Loss {dd_pct:.2%} > Limit {MAX_DAILY_LOSS_PCT:.2%}. TRADING HALTED.")
+                self.active = False
+            return False # 熔断中
+        return True # 正常
+
+    def validate_order(self, context, symbol, value, total_scan_val):
+        """检查单笔订单合规性"""
+        if not self.active: return False
+        
+        # 1. 检查单笔金额占比
+        if total_scan_val > 0 and (value / total_scan_val) > MAX_ORDER_VAL_PCT + 0.05: # 给5%容错
+            print(f"🛡️ [RISK] Order Reject: {symbol} Val {value:.0f} > Max {MAX_ORDER_VAL_PCT:.0%} of NAV")
+            return False
+            
+        return True
+
+class DataGuard:
+    """数据质检员：防止脏数据和延迟数据杀人"""
+    @staticmethod
+    def check_freshness(ticks, current_dt):
+        return True # 暂略
+
+class EmailNotifier:
+    """战地通讯员：发送每日收盘战报"""
+    def __init__(self):
+        # === 📧 邮件配置 ===
+        self.smtp_server = os.environ.get('EMAIL_HOST', 'smtp.163.com')
+        self.smtp_port = int(os.environ.get('EMAIL_PORT', 465))
+        self.sender = os.environ.get('EMAIL_USER', 'tanjhu@163.com')
+        self.password = os.environ.get('EMAIL_PASS', 'KHdqTEPNXViSJpJs')
+        self.receivers = [os.environ.get('EMAIL_TO', 'tanjhu@163.com')]
+        
+    def send_report(self, context):
+        """生成并发送 HTML 战报"""
+        if context.mode == MODE_BACKTEST: return
+        
+        try:
+            acc = context.account(account_id=context.account_id)
+            if not acc: return
+            
+            nav = acc.cash.nav
+            cash = acc.cash.available
+            initial = risk_safe.initial_nav_today if 'risk_safe' in globals() else nav
+            ret_pct = (nav - initial) / initial if initial > 0 else 0.0
+            
+            # 持仓列表
+            pos_rows = ""
+            for p in acc.positions():
+                name = context.theme_map.get(p.symbol, p.symbol)
+                color = "red" if p.fpnl > 0 else "green"
+                pos_rows += f"<tr><td>{p.symbol}</td><td>{name}</td><td>{int(p.amount)}</td><td>{p.market_value:.0f}</td><td style='color:{color}'>{p.fpnl:.0f}</td></tr>"
+            
+            state = getattr(context, 'market_state', 'UNKNOWN')
+            status_color = {'SAFE': 'green', 'CAUTION': 'orange', 'DANGER': 'red'}.get(state, 'black')
+            
+            html_content = f"""
+            <div style="font-family: Arial;">
+                <h2 style="color: #333;">📈 量化策略日报 ({context.now.strftime('%Y-%m-%d')})</h2>
+                <ul>
+                    <li>💰 NAV: {nav:,.2f}</li>
+                    <li>📊 Return: <span style="color: {'red' if ret_pct>=0 else 'green'}">{ret_pct:.2%}</span></li>
+                    <li>🚦 State: <span style="background-color: {status_color}; color: white; padding: 2px;">{state}</span></li>
+                </ul>
+                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                    <tr style="background-color: #f2f2f2;"><th>Symbol</th><th>Name</th><th>Vol</th><th>MktVal</th><th>PnL</th></tr>
+                    {pos_rows}
+                </table>
+            </div>
+            """
+            
+            msg = MIMEMultipart()
+            msg['From'] = self.sender
+            msg['To'] = ",".join(self.receivers)
+            msg['Subject'] = Header(f"策略战报: {ret_pct:.2%} | NAV {int(nav)}", 'utf-8')
+            msg.attach(MIMEText(html_content, 'html', 'utf-8'))
+            
+            server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port)
+            server.login(self.sender, self.password)
+            server.sendmail(self.sender, self.receivers, msg.as_string())
+            server.quit()
+            print(f"📧 Report sent to {self.receivers}")
+        except Exception as e:
+            print(f"⚠️ Email Failed: {e}")
+
+class WechatNotifier:
+    """通讯兵：企业微信群机器人通知"""
+    def __init__(self):
+        self.webhook_url = os.environ.get('WECHAT_WEBHOOK', 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=aa6eb940-0d50-489f-801e-26c467d77a30') 
+        
+    def send_report(self, context):
+        if not self.webhook_url or context.mode == MODE_BACKTEST: return
+        try:
+            import urllib.request
+            acc = context.account(account_id=context.account_id)
+            if not acc: return
+            
+            nav = acc.cash.nav
+            initial = risk_safe.initial_nav_today if 'risk_safe' in globals() else nav
+            ret_pct = (nav - initial) / initial if initial > 0 else 0.0
+            
+            md_content = f"# 🚀 战报 {context.now.strftime('%m-%d')}\n**NAV**: {nav:,.2f}\n**P&L**: {ret_pct:.2%}\n**State**: {getattr(context, 'market_state', 'N/A')}"
+            
+            data = {"msgtype": "markdown", "markdown": {"content": md_content}}
+            headers = {'Content-Type': 'application/json'}
+            req = urllib.request.Request(url=self.webhook_url, headers=headers, data=json.dumps(data).encode('utf-8'))
+            urllib.request.urlopen(req)
+            print("🤖 WeChat sent.")
+        except Exception as e:
+            print(f"⚠️ WeChat Failed: {e}")
+
+# 全局单例
+if 'risk_safe' not in globals(): risk_safe = RiskController()
+if 'mailer' not in globals(): mailer = EmailNotifier()
+if 'wechat' not in globals(): wechat = WechatNotifier()
 
 def get_market_regime(context, current_dt):
     # 1/2 年线宏通风控 + 20/60日线微观风控
@@ -606,7 +527,7 @@ def algo(context):
 
     context.rpm.days_count += 1
     if not context.rpm.initialized:
-        acc = context.account(account_id=context.account_id)
+        acc = context.account()
         if acc: context.rpm.initialize_tranches(acc.cash.nav)
         else: return
 
@@ -712,33 +633,23 @@ def algo(context):
         for s in list(active_t.holdings.keys()): active_t.sell(s, price_map.get(s, 0))
 
     # 3. 最终同步
-    try:
-        tgt_qty = context.rpm.total_holdings
-        # 先处理卖出
-        for pos in context.account(account_id=context.account_id).positions():
-            diff = pos.amount - tgt_qty.get(pos.symbol, 0)
-            if diff > 0 and pos.available > 0:
-                print(f"📉 Selling {pos.symbol}: {diff}")
-                order_volume(symbol=pos.symbol, volume=int(min(diff, pos.available)), side=OrderSide_Sell, order_type=OrderType_Market, position_effect=PositionEffect_Close)
-        
-        # 再处理买入
-        for sym, qty in tgt_qty.items():
-            print(f"📈 Buying {sym}: {qty}")
-            order_target_volume(symbol=sym, volume=int(qty), position_side=PositionSide_Long, order_type=OrderType_Market)
+    tgt_qty = context.rpm.total_holdings
+    for pos in context.account().positions():
+        diff = pos.amount - tgt_qty.get(pos.symbol, 0)
+        if diff > 0 and pos.available > 0:
+            order_volume(symbol=pos.symbol, volume=int(min(diff, pos.available)), side=OrderSide_Sell, order_type=OrderType_Market, position_effect=PositionEffect_Close)
+    
+    for sym, qty in tgt_qty.items():
+        order_target_volume(symbol=sym, volume=int(qty), position_side=PositionSide_Long, order_type=OrderType_Market)
 
-        context.rpm.save_state()
-    except Exception as e:
-        print(f"⚠️ [MKT] Trade Execution Failed: {e}")
-        # 这里不抛出异常，为了保证下面的战报能发出去
+    context.rpm.save_state()
     
-    # === 📧 每日收盘汇报 ===
-    print(f"📤 [DEBUG] Notification Triggered. Mode: {context.mode}, Account: {context.account_id}")
-    print(f"📧 [DEBUG] Mail settings: Server={mailer.smtp_server}, Sender={mailer.sender}, Receivers={mailer.receivers}")
-    print(f"🤖 [DEBUG] Wechat settings: Webhook={wechat.webhook_url[:40]}...")
-    
-    print("📤 Sending Daily Reports...")
-    mailer.send_report(context)
-    wechat.send_report(context)
+    # === 📧 每日收盘汇报 (仅实盘) ===
+    if context.mode == MODE_LIVE:
+        print(f"📤 Sending Daily Reports...")
+        risk_safe.on_day_start(context) # 更新下Nav用于展示
+        mailer.send_report(context)
+        wechat.send_report(context)
 
 def on_bar(context, bars):
     # 盘中高频止损 (追平实盘收益的关键)
@@ -757,7 +668,6 @@ def on_bar(context, bars):
                     if days_held <= PROTECTION_DAYS:
                         continue  # 保护期内不触发止损
                 
-
                 rec['high_price'] = max(rec['high_price'], bar.high)
                 entry, high, curr = rec['entry_price'], rec['high_price'], bar.close
                 if curr < entry * (1-STOP_LOSS) or (high > entry*(1+TRAILING_TRIGGER) and curr < high*(1-TRAILING_DROP)):
@@ -773,9 +683,9 @@ def on_backtest_finished(context, indicator):
     print(f"Return: {indicator.get('pnl_ratio', 0)*100:.2f}% | MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}% | Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
 
 if __name__ == '__main__':
-    RUN_MODE = 'MODE_LIVE' 
+    RUN_MODE = os.environ.get('GM_MODE', 'BACKTEST').upper()
     STRATEGY_ID = '60e6472f-01ac-11f1-a1c0-00ffda9d6e63'
-    if RUN_MODE == 'MODE_LIVE':
+    if RUN_MODE == 'LIVE':
         run(strategy_id=STRATEGY_ID, filename='main.py', mode=MODE_LIVE, token=os.getenv('MY_QUANT_TGM_TOKEN'))
     else:
         run(strategy_id=STRATEGY_ID, filename='main.py', mode=MODE_BACKTEST, token=os.getenv('MY_QUANT_TGM_TOKEN'), backtest_start_time=START_DATE, backtest_end_time=END_DATE, backtest_adjust=ADJUST_PREV, backtest_initial_cash=1000000, backtest_commission_ratio=0.0001)

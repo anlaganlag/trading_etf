@@ -234,28 +234,54 @@ def init(context):
     end_dt = END_DATE if context.mode == MODE_BACKTEST else datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     cache_file = os.path.join(config.BASE_DIR, "backtest_data_cache.pkl")
-    if os.path.exists(cache_file) and context.mode == MODE_BACKTEST:
-        if 0: # 强制重新获取以包含Volume
-           pass
+    need_refetch = True  # 默认需要重新获取
+    USE_CACHE = False    # 🔧 纯 API 模式，不使用缓存
+    
+    if USE_CACHE and os.path.exists(cache_file) and context.mode == MODE_BACKTEST:
         try:
-           cache = pd.read_pickle(cache_file)
-           context.prices_df = cache['prices']
-           context.benchmark_df = cache['benchmark']
-           context.volumes_df = cache.get('volumes', pd.DataFrame()) # 兼容旧缓存
-           if context.volumes_df.empty: raise ValueError("Cache missing volumes")
-        except:
-           print("⚠️ Cache invalid/missing, refetching...")
-           context.prices_df = None
-           
-    if not hasattr(context, 'prices_df') or context.prices_df is None:
+            cache = pd.read_pickle(cache_file)
+            context.prices_df = cache['prices']
+            context.benchmark_df = cache['benchmark']
+            context.volumes_df = cache.get('volumes', pd.DataFrame())
+            # 验证缓存完整性
+            if context.volumes_df.empty:
+                raise ValueError("Cache missing volumes")
+            if context.benchmark_df is None or (hasattr(context.benchmark_df, 'empty') and context.benchmark_df.empty):
+                raise ValueError("Cache missing benchmark")
+            need_refetch = False
+            print("✅ 缓存加载成功")
+        except Exception as e:
+            print(f"⚠️ Cache invalid/missing ({e}), refetching...")
+            context.prices_df = None
+            context.benchmark_df = None  # 🔧 修复: 同时重置 benchmark_df
+            context.volumes_df = None
+            need_refetch = True
+    
+    if need_refetch:
         sym_str = ",".join(context.whitelist)
+        
         # 1. Prices
+        print("📊 获取价格数据...")
         hd = history(symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
         hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
         context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
         
-        if context.mode == MODE_BACKTEST:
-             pd.to_pickle({'prices': context.prices_df, 'benchmark': context.benchmark_df}, cache_file)
+        # 2. Volumes
+        print("📊 获取成交量数据...")
+        vol_data = history(symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt, fields='symbol,volume,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+        vol_data['eob'] = pd.to_datetime(vol_data['eob']).dt.tz_localize(None)
+        context.volumes_df = vol_data.pivot(index='eob', columns='symbol', values='volume').ffill()
+        
+        # 3. Benchmark (🔧 修复: 正确获取基准数据)
+        print(f"📊 获取基准数据 ({MACRO_BENCHMARK})...")
+        bm_data = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_dt, end_time=end_dt, fields='close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+        bm_data['eob'] = pd.to_datetime(bm_data['eob']).dt.tz_localize(None)
+        context.benchmark_df = bm_data.set_index('eob')['close']
+        
+        # 4. 保存缓存
+        if context.mode == MODE_BACKTEST and USE_CACHE:
+            print("💾 保存缓存...")
+            pd.to_pickle({'prices': context.prices_df, 'benchmark': context.benchmark_df, 'volumes': context.volumes_df}, cache_file)
 
     if context.mode == MODE_LIVE: context.rpm.load_state()
     
