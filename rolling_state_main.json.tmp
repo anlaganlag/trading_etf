@@ -1,0 +1,17 @@
+{
+  "days_count": 1005,
+  "tranches": [
+    {
+      "id": 0,
+      "cash": 1756.5640100000091,
+      "holdings": {
+        "SHSE.512980": 36700,
+        "SZSE.159326": 23900,
+        "SHSE.516150": 21400,
+        "SHSE.512400": 10000
+      },
+      "pos_records": {
+        "SHSE.512980": {
+          "entry_price": 1.185,
+          "high_price": 1.221,
+          "entry_dt": 
