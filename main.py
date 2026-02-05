@@ -7,6 +7,10 @@ import pandas as pd
 import numpy as np
 import os
 import json
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from config import config
@@ -302,12 +306,150 @@ class DataGuard:
         # 工程化 TODO: 接入 corporate_action 数据，当日有分红则跳过该标的交易
         pass
 
+class EmailNotifier:
+    """战地通讯员：发送每日收盘战报"""
+    def __init__(self):
+        # === 📧 邮件配置 (请修改此处或使用环境变量) ===
+        self.smtp_server = os.environ.get('EMAIL_HOST', 'smtp.163.com')
+        self.smtp_port = int(os.environ.get('EMAIL_PORT', 465)) # SSL端口
+        self.sender = os.environ.get('EMAIL_USER', 'tanjhu@163.com') # 发件人
+        self.password = os.environ.get('EMAIL_PASS', 'KHdqTEPNXViSJpJs') # 🔑 必填：邮箱授权码
+        self.receivers = [os.environ.get('EMAIL_TO', 'tanjhu@163.com')] # 收件人列表
+        
+    def send_report(self, context):
+        """生成并发送 HTML 战报"""
+        if context.mode == MODE_BACKTEST: return # 回测模式默认不轰炸此邮箱
+        
+        try:
+            acc = context.account()
+            if not acc: return
+            
+            # 1. 核心数据
+            nav = acc.cash.nav
+            cash = acc.cash.available
+            initial = risk_safe.initial_nav_today if 'risk_safe' in globals() else nav
+            ret_pct = (nav - initial) / initial if initial > 0 else 0.0
+            
+            # 2. 持仓列表
+            pos_rows = ""
+            for p in acc.positions():
+                name = context.theme_map.get(p.symbol, p.symbol)
+                color = "red" if p.fpnl > 0 else "green"
+                pos_rows += f"""
+                <tr>
+                    <td>{p.symbol}</td>
+                    <td>{name}</td>
+                    <td>{int(p.amount)}</td>
+                    <td>{p.market_value:.0f}</td>
+                    <td style="color:{color}">{p.fpnl:.0f} ({p.fpnl/p.cost*100:.1f}%)</td>
+                </tr>
+                """
+            if not pos_rows: pos_rows = "<tr><td colspan='5' style='text-align:center'>空仓 (Flat)</td></tr>"
+            
+            # 3. 状态信息
+            state = getattr(context, 'market_state', 'UNKNOWN')
+            status_color = {'SAFE': 'green', 'CAUTION': 'orange', 'DANGER': 'red'}.get(state, 'black')
+            risk_scale = getattr(context, 'risk_scaler', 1.0)
+            
+            # 4. 组装 HTML
+            html_content = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px;">
+                <h2 style="color: #333;">📈 量化策略日报 ({context.now.strftime('%Y-%m-%d')})</h2>
+                <hr>
+                
+                <h3>资产概览</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li>💰 <b>净值 (NAV):</b> {nav:,.2f}</li>
+                    <li>💵 <b>可用现金:</b> {cash:,.2f}</li>
+                    <li>📊 <b>今日盈亏:</b> <span style="color: {'red' if ret_pct>=0 else 'green'}; font-weight: bold;">{ret_pct:.2%}</span></li>
+                </ul>
+                
+                <h3>风控雷达</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li>🚦 <b>市场状态:</b> <span style="background-color: {status_color}; color: white; padding: 2px 6px; border-radius: 4px;">{state}</span></li>
+                    <li>🛡️ <b>仓位系数:</b> {risk_scale:.1f}x</li>
+                    <li>👮 <b>熔断状态:</b> {'✅ 正常' if risk_safe.active else '❌ 已熔断 (HALTED)'}</li>
+                </ul>
+                
+                <h3>当前持仓</h3>
+                <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 14px;">
+                    <tr style="background-color: #f2f2f2;"><th>代码</th><th>名称</th><th>数量</th><th>市值</th><th>浮盈</th></tr>
+                    {pos_rows}
+                </table>
+                
+                <p style="font-size: 12px; color: #888; margin-top: 20px;">
+                    Powered by Scheme J (Special Forces V2) | GM-Quant
+                </p>
+            </div>
+            """
+            
+            # 5. 发送
+            msg = MIMEMultipart()
+            msg['From'] = self.sender
+            msg['To'] = ",".join(self.receivers)
+            icon = "🚀" if ret_pct > 0 else ("🤢" if ret_pct < -0.01 else "😐")
+            msg['Subject'] = Header(f"{icon} 策略战报: {ret_pct:.2%} | NAV {int(nav)}", 'utf-8')
+            msg.attach(MIMEText(html_content, 'html', 'utf-8'))
+            
+            server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port) # 163推荐SSL
+            server.login(self.sender, self.password)
+            server.sendmail(self.sender, self.receivers, msg.as_string())
+            server.quit()
+            print(f"📧 [Email] Report sent to {self.receivers}")
+            
+        except Exception as e:
+            print(f"⚠️ [Email] Send Failed: {e}")
+
+class WechatNotifier:
+    """通讯兵：企业微信群机器人通知"""
+    def __init__(self):
+        # === 🤖 微信配置 ===
+        # 请替换为您的真实 Webhook 地址 (格式: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxx)
+        self.webhook_url = os.environ.get('WECHAT_WEBHOOK', 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=aa6eb940-0d50-489f-801e-26c467d77a30') 
+        
+    def send_report(self, context):
+        if not self.webhook_url or context.mode == MODE_BACKTEST: return
+        
+        try:
+            import urllib.request
+            
+            acc = context.account()
+            if not acc: return
+            
+            nav = acc.cash.nav
+            initial = risk_safe.initial_nav_today if 'risk_safe' in globals() else nav
+            ret_pct = (nav - initial) / initial if initial > 0 else 0.0
+            ret_color = "warning" if ret_pct >= 0 else "comment" # markdown颜色 hack
+            
+            # 组装 Markdown 消息
+            # <font color="info">绿色</font> <font color="comment">红色</font> <font color="warning">橙色</font>
+            md_content = f"""# 🚀 量化战报 {context.now.strftime('%m-%d')}
+**净值**: <font color="info">{nav:,.2f}</font>
+**盈亏**: <font color="{ret_color}">{ret_pct:.2%}</font>
+**风控**: `{context.market_state}` (仓位 {context.risk_scaler}x)
+> 持仓详情请查阅邮件
+"""
+            
+            data = {
+                "msgtype": "markdown",
+                "markdown": {"content": md_content}
+            }
+            
+            headers = {'Content-Type': 'application/json'}
+            req = urllib.request.Request(url=self.webhook_url, headers=headers, data=json.dumps(data).encode('utf-8'))
+            urllib.request.urlopen(req)
+            print("🤖 [WeChat] Notification sent.")
+            
+        except Exception as e:
+            print(f"⚠️ [WeChat] Send Failed: {e}")
+
 # 全局单例
-if 'risk_safe' not in globals():
-    risk_safe = RiskController()
+if 'risk_safe' not in globals(): risk_safe = RiskController()
+if 'mailer' not in globals(): mailer = EmailNotifier()
+if 'wechat' not in globals(): wechat = WechatNotifier()
 
 def init(context):
-    print(f"�🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...")
+    print(f"🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...")
     context.rpm = RollingPortfolioManager()
     context.mode = MODE_BACKTEST if os.environ.get('GM_MODE', 'BACKTEST').upper() == 'BACKTEST' else MODE_LIVE
     
@@ -551,6 +693,10 @@ def algo(context):
         order_target_volume(symbol=sym, volume=int(qty), position_side=PositionSide_Long, order_type=OrderType_Market)
 
     context.rpm.save_state()
+    
+    # === 📧 每日收盘汇报 ===
+    mailer.send_report(context)
+    wechat.send_report(context)
 
 def on_bar(context, bars):
     # 盘中高频止损 (追平实盘收益的关键)
@@ -584,9 +730,9 @@ def on_backtest_finished(context, indicator):
     print(f"Return: {indicator.get('pnl_ratio', 0)*100:.2f}% | MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}% | Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
 
 if __name__ == '__main__':
-    RUN_MODE = 'BACKTEST' 
+    RUN_MODE = 'MODE_LIVE' 
     STRATEGY_ID = '60e6472f-01ac-11f1-a1c0-00ffda9d6e63'
     if RUN_MODE == 'MODE_LIVE':
-        run(strategy_id=STRATEGY_ID, filename='main1.py', mode=MODE_LIVE, token=os.getenv('MY_QUANT_TGM_TOKEN'))
+        run(strategy_id=STRATEGY_ID, filename='main.py', mode=MODE_LIVE, token=os.getenv('MY_QUANT_TGM_TOKEN'))
     else:
-        run(strategy_id=STRATEGY_ID, filename='main1.py', mode=MODE_BACKTEST, token=os.getenv('MY_QUANT_TGM_TOKEN'), backtest_start_time=START_DATE, backtest_end_time=END_DATE, backtest_adjust=ADJUST_PREV, backtest_initial_cash=1000000, backtest_commission_ratio=0.0001)
+        run(strategy_id=STRATEGY_ID, filename='main.py', mode=MODE_BACKTEST, token=os.getenv('MY_QUANT_TGM_TOKEN'), backtest_start_time=START_DATE, backtest_end_time=END_DATE, backtest_adjust=ADJUST_PREV, backtest_initial_cash=1000000, backtest_commission_ratio=0.0001)
