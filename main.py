@@ -16,8 +16,8 @@ from dotenv import load_dotenv
 from config import config
 
 load_dotenv()
-# 账户 ID：保留 main.py 原本使用的 ID 或从环境读取
-ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
+# 账户 ID：用户指定
+ACCOUNT_ID = '031af80c-019f-11f1-acc4-00163e022aa6'
 
 # === 策略参数 (支持环境变量，方便参数调优) ===
 TOP_N = 4                 # 选前N只 (默认值)
@@ -234,7 +234,7 @@ class RiskController:
         current_day = context.now.date()
         if self.last_day != current_day:
             # 新的一天，重置数据
-            acc = context.account()
+            acc = context.account(account_id=context.account_id)
             if acc:
                 # 注意：实盘通常用 cash.nav，回测用 cash.nav
                 self.initial_nav_today = acc.cash.nav
@@ -245,7 +245,7 @@ class RiskController:
 
     def check_daily_loss(self, context):
         """检查单日亏损是否触达熔断线"""
-        acc = context.account()
+        acc = context.account(account_id=context.account_id)
         if not acc or self.initial_nav_today <= 0: return True
         
         current_nav = acc.cash.nav
@@ -321,7 +321,7 @@ class EmailNotifier:
         if context.mode == MODE_BACKTEST: return # 回测模式默认不轰炸此邮箱
         
         try:
-            acc = context.account()
+            acc = context.account(account_id=context.account_id)
             if not acc: return
             
             # 1. 核心数据
@@ -395,10 +395,12 @@ class EmailNotifier:
             server.login(self.sender, self.password)
             server.sendmail(self.sender, self.receivers, msg.as_string())
             server.quit()
-            print(f"📧 [Email] Report sent to {self.receivers}")
+            print(f"📧 [Email] SUCCESS: Report sent to {self.receivers}")
             
         except Exception as e:
-            print(f"⚠️ [Email] Send Failed: {e}")
+            print(f"⚠️ [Email] ERROR: Send Failed: {e}")
+            import traceback
+            traceback.print_exc()
 
 class WechatNotifier:
     """通讯兵：企业微信群机器人通知"""
@@ -408,13 +410,21 @@ class WechatNotifier:
         self.webhook_url = os.environ.get('WECHAT_WEBHOOK', 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=aa6eb940-0d50-489f-801e-26c467d77a30') 
         
     def send_report(self, context):
-        if not self.webhook_url or context.mode == MODE_BACKTEST: return
+        print(f"🤖 [WeChat] Attempting to send report to {self.webhook_url[-10:]}...")
+        if not self.webhook_url:
+            print("🤖 [WeChat] SKIP: Webhook URL is empty.")
+            return
+        if context.mode == MODE_BACKTEST:
+            print("🤖 [WeChat] SKIP: Backtest mode.")
+            return
         
         try:
             import urllib.request
             
-            acc = context.account()
-            if not acc: return
+            acc = context.account(account_id=context.account_id)
+            if not acc:
+                print("🤖 [WeChat] ERROR: No account in context.")
+                return
             
             nav = acc.cash.nav
             initial = risk_safe.initial_nav_today if 'risk_safe' in globals() else nav
@@ -422,7 +432,6 @@ class WechatNotifier:
             ret_color = "warning" if ret_pct >= 0 else "comment" # markdown颜色 hack
             
             # 组装 Markdown 消息
-            # <font color="info">绿色</font> <font color="comment">红色</font> <font color="warning">橙色</font>
             md_content = f"""# 🚀 量化战报 {context.now.strftime('%m-%d')}
 **净值**: <font color="info">{nav:,.2f}</font>
 **盈亏**: <font color="{ret_color}">{ret_pct:.2%}</font>
@@ -437,11 +446,14 @@ class WechatNotifier:
             
             headers = {'Content-Type': 'application/json'}
             req = urllib.request.Request(url=self.webhook_url, headers=headers, data=json.dumps(data).encode('utf-8'))
-            urllib.request.urlopen(req)
-            print("🤖 [WeChat] Notification sent.")
+            resp = urllib.request.urlopen(req)
+            resp_data = resp.read().decode('utf-8')
+            print(f"🤖 [WeChat] SUCCESS: API Response: {resp_data}")
             
         except Exception as e:
-            print(f"⚠️ [WeChat] Send Failed: {e}")
+            print(f"⚠️ [WeChat] ERROR: Send Failed: {e}")
+            import traceback
+            traceback.print_exc()
 
 # 全局单例
 if 'risk_safe' not in globals(): risk_safe = RiskController()
@@ -450,8 +462,13 @@ if 'wechat' not in globals(): wechat = WechatNotifier()
 
 def init(context):
     print(f"🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...")
+    
+    # 绑定账户
+    context.account_id = ACCOUNT_ID
+    print(f"💳 Connected to Account: {context.account_id}")
+        
     context.rpm = RollingPortfolioManager()
-    context.mode = MODE_BACKTEST if os.environ.get('GM_MODE', 'BACKTEST').upper() == 'BACKTEST' else MODE_LIVE
+    context.mode = MODE_LIVE  # 🧪 强制设为实盘模式以触发通知测试 (测试完请改回)
     
     # 风险状态机
     context.market_state, context.risk_scaler, context.br_history = 'SAFE', 1.0, []
@@ -485,19 +502,31 @@ def init(context):
            
     if not hasattr(context, 'prices_df') or context.prices_df is None:
         sym_str = ",".join(context.whitelist)
+        print(f"📡 Fetching data for {len(context.whitelist)} ETFs and Benchmark {MACRO_BENCHMARK}...")
+        
         # 1. Prices
         hd = history(symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
         hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
         context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
         
+        # 2. Benchmark (Fix: Loading MACRO_BENCHMARK)
+        bm_hd = history(symbol=MACRO_BENCHMARK, frequency='1d', start_time=start_dt, end_time=end_dt, fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+        bm_hd['eob'] = pd.to_datetime(bm_hd['eob']).dt.tz_localize(None)
+        context.benchmark_df = bm_hd.set_index('eob')['close'].ffill()
+        
         if context.mode == MODE_BACKTEST:
              pd.to_pickle({'prices': context.prices_df, 'benchmark': context.benchmark_df}, cache_file)
+             print(f"💾 Data cached to {cache_file}")
 
     if context.mode == MODE_LIVE: context.rpm.load_state()
     
     subscribe(symbols=list(context.whitelist) if context.mode == MODE_LIVE else 'SHSE.000001', frequency='60s' if context.mode == MODE_LIVE else '1d')
     exec_time = os.environ.get('OPT_EXEC_TIME', '14:55:00')
     schedule(schedule_func=algo, date_rule='1d', time_rule=exec_time)
+    
+    # 🧪 测试用：启动后立即执行一次 algo (模拟强制交易并触发通知)
+    print("🧪 [TEST] Triggering immediate algo execution for testing...")
+    algo(context)
 
 # ... (get_market_regime 和 get_ranking 保持不变，接上文) ...
 
@@ -577,7 +606,7 @@ def algo(context):
 
     context.rpm.days_count += 1
     if not context.rpm.initialized:
-        acc = context.account()
+        acc = context.account(account_id=context.account_id)
         if acc: context.rpm.initialize_tranches(acc.cash.nav)
         else: return
 
@@ -683,18 +712,31 @@ def algo(context):
         for s in list(active_t.holdings.keys()): active_t.sell(s, price_map.get(s, 0))
 
     # 3. 最终同步
-    tgt_qty = context.rpm.total_holdings
-    for pos in context.account().positions():
-        diff = pos.amount - tgt_qty.get(pos.symbol, 0)
-        if diff > 0 and pos.available > 0:
-            order_volume(symbol=pos.symbol, volume=int(min(diff, pos.available)), side=OrderSide_Sell, order_type=OrderType_Market, position_effect=PositionEffect_Close)
-    
-    for sym, qty in tgt_qty.items():
-        order_target_volume(symbol=sym, volume=int(qty), position_side=PositionSide_Long, order_type=OrderType_Market)
+    try:
+        tgt_qty = context.rpm.total_holdings
+        # 先处理卖出
+        for pos in context.account(account_id=context.account_id).positions():
+            diff = pos.amount - tgt_qty.get(pos.symbol, 0)
+            if diff > 0 and pos.available > 0:
+                print(f"📉 Selling {pos.symbol}: {diff}")
+                order_volume(symbol=pos.symbol, volume=int(min(diff, pos.available)), side=OrderSide_Sell, order_type=OrderType_Market, position_effect=PositionEffect_Close)
+        
+        # 再处理买入
+        for sym, qty in tgt_qty.items():
+            print(f"📈 Buying {sym}: {qty}")
+            order_target_volume(symbol=sym, volume=int(qty), position_side=PositionSide_Long, order_type=OrderType_Market)
 
-    context.rpm.save_state()
+        context.rpm.save_state()
+    except Exception as e:
+        print(f"⚠️ [MKT] Trade Execution Failed: {e}")
+        # 这里不抛出异常，为了保证下面的战报能发出去
     
     # === 📧 每日收盘汇报 ===
+    print(f"📤 [DEBUG] Notification Triggered. Mode: {context.mode}, Account: {context.account_id}")
+    print(f"📧 [DEBUG] Mail settings: Server={mailer.smtp_server}, Sender={mailer.sender}, Receivers={mailer.receivers}")
+    print(f"🤖 [DEBUG] Wechat settings: Webhook={wechat.webhook_url[:40]}...")
+    
+    print("📤 Sending Daily Reports...")
     mailer.send_report(context)
     wechat.send_report(context)
 
@@ -715,6 +757,7 @@ def on_bar(context, bars):
                     if days_held <= PROTECTION_DAYS:
                         continue  # 保护期内不触发止损
                 
+
                 rec['high_price'] = max(rec['high_price'], bar.high)
                 entry, high, curr = rec['entry_price'], rec['high_price'], bar.close
                 if curr < entry * (1-STOP_LOSS) or (high > entry*(1+TRAILING_TRIGGER) and curr < high*(1-TRAILING_DROP)):

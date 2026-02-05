@@ -1,84 +1,84 @@
 {
-  "days_count": 825,
+  "days_count": 1,
   "tranches": [
     {
       "id": 0,
-      "cash": 90818.21875000006,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 90818.21875000006,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 1,
-      "cash": 104455.05002,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 104455.05002,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 2,
-      "cash": 112751.53604,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 112751.53604,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 3,
-      "cash": 100187.71263000004,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 100187.71263000004,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 4,
-      "cash": 90279.94388999997,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 90279.94388999997,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 5,
-      "cash": 68489.75150000001,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 68489.75150000001,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 6,
-      "cash": 84014.48843000008,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 84014.48843000008,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 7,
-      "cash": 77187.02939000003,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 77187.02939000003,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 8,
-      "cash": 77580.55330000003,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 77580.55330000003,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     },
     {
       "id": 9,
-      "cash": 74277.64450999998,
+      "cash": 99997.16523188433,
       "holdings": {},
       "pos_records": {},
-      "total_value": 74277.64450999998,
+      "total_value": 99997.16523188433,
       "guard_triggered_today": false
     }
   ]

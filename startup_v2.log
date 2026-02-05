@@ -1,0 +1,15 @@
+----------------------------------------
+
+python sdk version: 3.0.180
+
+c sdk version: 3.8.13
+
+----------------------------------------
+2026-02-05 16:59:28,163 INFO [callback.py:569] 连接行情服务成功
+2026-02-05 16:59:28,401 INFO [callback.py:569] 连接行情服务成功
+2026-02-05 16:59:28,640 INFO [callback.py:557] 连接交易服务成功
+🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...
+💳 Connected to Account: 031af80c-019f-11f1-acc4-00163e022aa6
+⚠️ Cache invalid/missing, refetching...
+📡 Fetching data for 77 ETFs and Benchmark SZSE.159915...
+💾 Data cached to C:\Users\tanjh\.ydgm3\projects\aea75195-00dd-11f1-866a-00ffda9d6e63\backtest_data_cache.pkl
