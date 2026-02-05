@@ -221,7 +221,7 @@ class RollingPortfolioManager:
 def init(context):
     print(f"🚀 Main Strategy Upgrading to V2 (Meta-Gate Enabled)...")
     context.rpm = RollingPortfolioManager()
-    # context.mode = MODE_BACKTEST if os.environ.get('GM_MODE', 'BACKTEST').upper() == 'BACKTEST' else MODE_LIVE
+    context.mode = MODE_BACKTEST if os.environ.get('GM_MODE', 'BACKTEST').upper() == 'BACKTEST' else MODE_LIVE
     # 绑定账户 (仅实盘)
     if context.mode == MODE_LIVE:
         context.account_id = ACCOUNT_ID
@@ -443,9 +443,9 @@ class WechatNotifier:
             headers = {'Content-Type': 'application/json'}
             req = urllib.request.Request(url=self.webhook_url, headers=headers, data=json.dumps(data).encode('utf-8'))
             urllib.request.urlopen(req)
-            print("🤖 WeChat sent.")
+            print("🤖 WeChat Notification sent.")
         except Exception as e:
-            print(f"⚠️ WeChat Failed: {e}")
+            print(f"⚠️ WeChat Send Failed: {e}")
 
 # 全局单例
 if 'risk_safe' not in globals(): risk_safe = RiskController()
