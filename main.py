@@ -16,8 +16,16 @@ load_dotenv()
 ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
 
 # === 策略参数 (支持环境变量，方便参数调优) ===
-TOP_N = 4                 # 选前N只
+TOP_N = 4                 # 选前N只 (默认值)
 REBALANCE_PERIOD_T = 10   # 每T个交易日调仓一次
+
+# === 阶段五：动态 TOP_N ===
+DYNAMIC_TOP_N = False     # 🔴 实验失败，关闭。SAFE时分散过度反而降低收益
+TOP_N_BY_STATE = {
+    'SAFE': 5,     # 强势市场：多持仓捕捉机会
+    'CAUTION': 4,  # 警界市场：默认持仓
+    'DANGER': 2    # 危险市场：集中持仓降低风险
+}
 STOP_LOSS = float(os.environ.get('OPT_STOP_LOSS', 0.20))
 TRAILING_TRIGGER = float(os.environ.get('OPT_TRAILING_TRIGGER', 0.15))
 TRAILING_DROP = float(os.environ.get('OPT_TRAILING_DROP', 0.03))
@@ -41,12 +49,17 @@ PROTECTION_DAYS = int(os.environ.get('OPT_PROTECTION_DAYS', 0))  # 默认关闭�
 # === 阶段三：软冲销机制 (Turnover Buffer) ===
 TURNOVER_BUFFER = 2    # 缓冲区大小：持仓在前 TOP_N + BUFFER 内不换手
 
+# === 阶段四：动态止损 (ATR-Based Stop Loss) ===
+DYNAMIC_STOP_LOSS = False          # 🔴 实验失败，关闭。ETF波动率低导致止损过紧
+ATR_MULTIPLIER = 2.5               # 波动率乘数：止损 = 入场价 * (1 - K * 波动率)
+ATR_LOOKBACK = 20                  # 计算波动率的回望天数
+
 class Tranche:
     def __init__(self, t_id, initial_cash=0):
         self.id = t_id
         self.cash = initial_cash
         self.holdings = {} 
-        self.pos_records = {} # {symbol: {'entry_price': x, 'high_price': y, 'entry_dt': dt}}
+        self.pos_records = {} # {symbol: {'entry_price', 'high_price', 'entry_dt', 'volatility'}}
         self.total_value = initial_cash
         self.guard_triggered_today = False 
 
@@ -73,12 +86,12 @@ class Tranche:
         self.total_value = val
 
     def check_guard(self, price_map, current_dt=None):
-        """检查止损/止盈条件，支持保护期"""
+        """检查止损/止盈条件，支持保护期和动态止损"""
         to_sell = []
         for sym, rec in self.pos_records.items():
             if sym not in self.holdings: continue
             
-            # 🆕 保护期检查：买入后 N 天内不触发止损
+            # 保护期检查：买入后 N 天内不触发止损
             entry_dt = rec.get('entry_dt')
             if current_dt and entry_dt and PROTECTION_DAYS > 0:
                 days_held = (current_dt - entry_dt).days
@@ -89,8 +102,17 @@ class Tranche:
             if curr_p <= 0: continue
             entry, high = rec['entry_price'], rec['high_price']
             
-            # 硬止损 OR 移动止盈回落
-            is_sl = curr_p < entry * (1 - STOP_LOSS)
+            # 🆕 动态止损：根据标的波动率调整止损线
+            if DYNAMIC_STOP_LOSS and 'volatility' in rec:
+                vol = rec['volatility']
+                # 止损 = 入场价 * (1 - K * 波动率)
+                # 但设置上下限：最小10%，最大30%
+                dynamic_sl = max(0.10, min(0.30, ATR_MULTIPLIER * vol))
+                is_sl = curr_p < entry * (1 - dynamic_sl)
+            else:
+                is_sl = curr_p < entry * (1 - STOP_LOSS)
+            
+            # 移动止盈回落
             is_tp = high > entry * (1 + TRAILING_TRIGGER) and curr_p < high * (1 - TRAILING_DROP)
             
             if is_sl or is_tp:
@@ -113,8 +135,8 @@ class Tranche:
                 self.holdings.pop(symbol, None)
                 self.pos_records.pop(symbol, None)
 
-    def buy(self, symbol, cash_allocated, price, current_dt=None):
-        """买入标的，记录买入时间用于保护期计算"""
+    def buy(self, symbol, cash_allocated, price, current_dt=None, volatility=None):
+        """买入标的，记录买入时间和波动率用于动态止损"""
         if price <= 0: return 0
         shares = int(cash_allocated / price / 100) * 100
         cost = shares * price
@@ -124,7 +146,8 @@ class Tranche:
             self.pos_records[symbol] = {
                 'entry_price': price, 
                 'high_price': price,
-                'entry_dt': current_dt  # 🆕 记录买入时间
+                'entry_dt': current_dt,
+                'volatility': volatility or 0.02  # 默认 2% 日波动
             }
             return shares
         return 0
@@ -237,7 +260,8 @@ def init(context):
     if context.mode == MODE_LIVE: context.rpm.load_state()
     
     subscribe(symbols=list(context.whitelist) if context.mode == MODE_LIVE else 'SHSE.000001', frequency='60s' if context.mode == MODE_LIVE else '1d')
-    schedule(schedule_func=algo, date_rule='1d', time_rule='14:55:00')
+    exec_time = os.environ.get('OPT_EXEC_TIME', '14:55:00')
+    schedule(schedule_func=algo, date_rule='1d', time_rule=exec_time)
 
 def get_market_regime(context, current_dt):
     # 1/2 年线宏通风控 + 20/60日线微观风控
@@ -334,6 +358,12 @@ def algo(context):
     
     rank_df, _ = get_ranking(context, current_dt)
     if rank_df is not None and not active_t.guard_triggered_today:
+        # 🆕 动态 TOP_N：根据市场状态调整持仓数量
+        if DYNAMIC_TOP_N:
+            current_top_n = TOP_N_BY_STATE.get(context.market_state, TOP_N)
+        else:
+            current_top_n = TOP_N
+        
         # A. 生成目标候选名单 (Top N + Buffer)
         candidates = []
         themes = {}
@@ -343,8 +373,8 @@ def algo(context):
                 themes[row['theme']] = themes.get(row['theme'], 0) + 1
         
         # 定义核心名单和缓冲区名单
-        core_targets = candidates[:TOP_N]
-        buffer_targets = candidates[:TOP_N + TURNOVER_BUFFER]
+        core_targets = candidates[:current_top_n]
+        buffer_targets = candidates[:current_top_n + TURNOVER_BUFFER]
         
         # B. 智能保留逻辑
         existing_holdings = list(active_t.holdings.keys())
@@ -355,7 +385,7 @@ def algo(context):
         current_slots_used = 0
         for s in existing_holdings:
             # 如果持仓不仅在 Buffer 内，且没有触发主题限制（虽然上面生成candidates已经过滤了主题，但这里简单起见只校验Buffer）
-            if s in buffer_targets and current_slots_used < TOP_N:
+            if s in buffer_targets and current_slots_used < current_top_n:
                 kept_holdings.append(s)
                 current_slots_used += 1
             else:
@@ -365,7 +395,7 @@ def algo(context):
         # C. 填充新标的
         # 从核心名单中选，跳过已经保留的
         for s in core_targets:
-            if current_slots_used >= TOP_N: break
+            if current_slots_used >= current_top_n: break
             if s not in kept_holdings:
                 targets_to_buy.append(s)
                 current_slots_used += 1
@@ -375,7 +405,7 @@ def algo(context):
         
         # 动态分配资金：保留仓位的资金不轻举妄动，只对释放出的现金进行再分配
         # 简化逻辑：计算每个 Slot 应该分到的总资产 (Total Value / TOP_N)
-        target_slot_val = (active_t.total_value * 0.99 * scale) / TOP_N
+        target_slot_val = (active_t.total_value * 0.99 * scale) / current_top_n
         
         # 补齐保留仓位 (Rebalance) + 买入新仓位
         final_list = kept_holdings + targets_to_buy
@@ -393,7 +423,15 @@ def algo(context):
                  diff_val = target_val - current_val
                  
                  if diff_val > 0:
-                     active_t.buy(s, diff_val, price_map.get(s, 0), current_dt)
+                     # 🆕 计算标的历史波动率用于动态止损
+                     vol = None
+                     if DYNAMIC_STOP_LOSS:
+                         hist = context.prices_df[context.prices_df.index <= current_dt]
+                         if s in hist.columns and len(hist) > ATR_LOOKBACK:
+                             daily_rets = hist[s].pct_change().dropna()
+                             if len(daily_rets) >= ATR_LOOKBACK:
+                                 vol = daily_rets.tail(ATR_LOOKBACK).std()
+                     active_t.buy(s, diff_val, price_map.get(s, 0), current_dt, vol)
                  elif diff_val < -100: # 卖出再平衡 (由于Buffer的存在，这里可能不需要严格再平衡，但为了风控还是做)
                      # 软冲销的精髓：如果已经在持仓，尽量少动。
                      # 这里做一个阈值：只有偏离超过 20% 才再平衡，否则躺平
@@ -443,7 +481,9 @@ def on_bar(context, bars):
                     context.rpm.save_state()
 
 def on_backtest_finished(context, indicator):
-    print(f"\n=== UPGRADED MAIN REPORT (BUFFER={TURNOVER_BUFFER}) ===")
+    dsl_status = f"ATR*{ATR_MULTIPLIER}" if DYNAMIC_STOP_LOSS else f"Fixed {STOP_LOSS*100:.0f}%"
+    dtn_status = "Dynamic" if DYNAMIC_TOP_N else f"Fixed {TOP_N}"
+    print(f"\n=== REPORT (BUFFER={TURNOVER_BUFFER}, SL={dsl_status}, TOP_N={dtn_status}) ===")
     print(f"Return: {indicator.get('pnl_ratio', 0)*100:.2f}% | MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}% | Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
 
 if __name__ == '__main__':
