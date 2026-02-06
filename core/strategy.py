@@ -22,8 +22,8 @@ def algo(context):
 
     # === 风控前置检查 (仅实盘) ===
     if context.mode == MODE_LIVE:
-        context.risk_safe.on_day_start(context)
-        if not context.risk_safe.check_daily_loss(context):
+        context.risk_controller.on_day_start(context)
+        if not context.risk_controller.check_daily_loss(context):
             logger.warning(f"🧨 [ALGO] 触发每日亏损熔断，今日跳过交易")
             return
 
@@ -53,9 +53,15 @@ def algo(context):
         else:
             logger.error("❌ Failed to get account info for initialization")
             return
+    # === 🛡️ 安全检查：确保价格数据切片正确 ===
+    prices_slice = context.prices_df[context.prices_df.index <= current_dt]
 
     # 1. 更新价值与止损
-    price_map = context.prices_df[context.prices_df.index <= current_dt].iloc[-1].to_dict()
+    if prices_slice.empty:
+        logger.warning(f"⚠️ [ALGO] No price data available up to {current_dt}")
+        return
+    
+    price_map = prices_slice.iloc[-1].to_dict()
     for t in context.rpm.tranches:
         t.update_value(price_map)
         to_sell = t.check_guard(price_map, current_dt)
@@ -67,65 +73,28 @@ def algo(context):
         else:
             t.guard_triggered_today = False
 
-    # 2. 轮动调仓 (Soft Rotation)
+    # 2. 轮动调仓 (Soft Rotation) - logic delegated to core/logic.py
     active_idx = (context.rpm.days_count - 1) % config.REBALANCE_PERIOD_T
     active_t = context.rpm.tranches[active_idx]
     logger.info(f"🔄 Processing Tranche Index: {active_idx} (Day {context.rpm.days_count})")
 
-    rank_df, _ = get_ranking(context, current_dt)
+    from core.logic import calculate_target_holdings, calculate_position_scale
     
-    if rank_df is not None and not active_t.guard_triggered_today:
-        current_top_n = config.TOP_N
-        # A. 生成目标候选名单 (Top N + Buffer)
-        candidates = []
-        themes = {}
-        for code, row in rank_df.iterrows():
-            if themes.get(row['theme'], 0) < config.MAX_PER_THEME:
-                candidates.append(code)
-                themes[row['theme']] = themes.get(row['theme'], 0) + 1
+    if not active_t.guard_triggered_today:
+        # A. 计算目标持仓权力重 (纯权重份数)
+        weights_map = calculate_target_holdings(context, current_dt, active_t, price_map)
         
-        core_targets = candidates[:current_top_n]
-        buffer_targets = candidates[:current_top_n + config.TURNOVER_BUFFER]
+        # B. 计算目标总仓位比例
+        scale, trend_scale, risk_scale = calculate_position_scale(context, current_dt)
+        logger.info(f"🚦 Market State: {context.market_state} | Scale: {scale:.2%} (Trend:{trend_scale:.0%} * Risk:{risk_scale:.0%})")
         
-        # B. 智能保留逻辑 (Soft Rotation)
-        existing_holdings = list(active_t.holdings.keys())
-        kept_holdings, targets_to_buy = [], []
-        current_slots_used = 0
-        
-        for s in existing_holdings:
-            if s in buffer_targets and current_slots_used < current_top_n:
-                kept_holdings.append(s)
-                current_slots_used += 1
-                logger.info(f"🤝 [Tranche {active_idx}] Kept in Buffer: {s}")
-            else:
-                active_t.sell(s, price_map.get(s, 0))
-                logger.info(f"💨 [Tranche {active_idx}] Dropped from Buffer: {s}")
-        
-        # C. 填充新标的
-        for s in core_targets:
-            if current_slots_used >= current_top_n:
-                break
-            if s not in kept_holdings:
-                targets_to_buy.append(s)
-                current_slots_used += 1
-
-        # D. 执行配置与买入
-        scale = (get_market_regime(context, current_dt) if config.DYNAMIC_POSITION else 1.0) * \
-                (context.risk_scaler if config.ENABLE_META_GATE else 1.0)
-        
-        logger.info(f"🚦 Market State: {context.market_state} | Scale: {scale:.2%}")
-
-        final_list = kept_holdings + targets_to_buy
-        weights = {
-            s: (2 if i < 3 else 1) 
-            for i, s in enumerate(candidates) if s in final_list
-        }
-        total_w = sum(weights.values())
+        final_list = list(weights_map.keys())
+        total_w = sum(weights_map.values())
         
         if total_w > 0:
             unit_val = (active_t.total_value * 0.99 * scale) / total_w
-            for s in final_list:
-                target_val = unit_val * weights[s]
+            for s, w in weights_map.items():
+                target_val = unit_val * w
                 current_val = active_t.holdings.get(s, 0) * price_map.get(s, 0)
                 diff_val = target_val - current_val
 
@@ -138,7 +107,7 @@ def algo(context):
                             if len(daily_rets) >= config.ATR_LOOKBACK:
                                 vol = daily_rets.tail(config.ATR_LOOKBACK).std()
                     active_t.buy(s, diff_val, price_map.get(s, 0), current_dt, vol)
-                    logger.info(f"🛒 [Tranche {active_idx}] Buying {s} | Target Val: {target_val:,.0f}")
+                    logger.info(f"🛒 [Tranche {active_idx}] Buying {s} | W:{w} | Target Val: {target_val:,.0f}")
                 elif diff_val < -100:
                     if abs(diff_val) > target_val * 0.2:
                         qty = int(abs(diff_val) / price_map.get(s, 1) / 100) * 100
@@ -158,17 +127,21 @@ def algo(context):
         logger.error("❌ Failed to sync: Account object is None")
         return
 
+    order_summary = []
+
     # A. 卖出多余持仓
     for pos in acc.positions():
         diff = pos.amount - tgt_qty.get(pos.symbol, 0)
         if diff > 0 and pos.available > 0:
+            vol_to_sell = int(min(diff, pos.available))
             order_volume(
                 symbol=pos.symbol,
-                volume=int(min(diff, pos.available)),
+                volume=vol_to_sell,
                 side=OrderSide_Sell,
                 order_type=OrderType_Market,
                 position_effect=PositionEffect_Close
             )
+            order_summary.append(f"SELL {pos.symbol} {vol_to_sell}股")
 
     # B. 买入目标仓位
     for sym, qty in tgt_qty.items():
@@ -179,6 +152,10 @@ def algo(context):
                 position_side=PositionSide_Long,
                 order_type=OrderType_Market
             )
+            # 记录预估买入（注意此处是目标量）
+            current_pos = next((p.amount for p in acc.positions() if p.symbol == sym), 0)
+            if int(qty) > current_pos:
+                order_summary.append(f"BUY  {sym} -> {int(qty)}股")
 
     context.rpm.record_nav(current_dt)
     context.rpm.save_state()
@@ -186,6 +163,15 @@ def algo(context):
     # === 每日收盘汇报 (仅实盘) ===
     if context.mode == MODE_LIVE:
         logger.info("📤 Algorithm finished. Triggering notifications...")
+        
+        # 实时微信简报
+        if order_summary:
+            summary_text = "📦 今日交易执行:\n" + "\n".join(order_summary)
+        else:
+            summary_text = "😴 今日持仓未变 (或已达标)"
+            
+        context.wechat.send_text(f"🏁 交易触发完毕\n指数状态: {context.market_state}\n当前切片: {active_idx}\n{summary_text}")
+        
         context.mailer.send_report(context)
         context.wechat.send_report(context)
 

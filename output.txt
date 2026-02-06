@@ -1,0 +1,24 @@
+Loading Data...
+Data Loaded: 1283 days (Up to 2026-02-06 00:00:00)
+Forcing Initialization with 10,000,000 Base.
+
+--- Theoretical Prediction based on logic.py ---
+Simulated Day: 1
+Active Tranche: 0
+
+Traffic Lights:
+  > Market State: SAFE
+  > Trend Scale:  90.00%
+  > Risk Scale:   100.00%
+  > Final Scale:  90.00%
+
+Active Tranche Assets: ¥1,000,000.00
+Allocatable (Scaled):  ¥891,000.00
+
+--- 💰 Target Execution Plan ---
+Ticker       Name           Weight   Target Value    Current Val     Action    
+-------------------------------------------------------------------------------------
+SZSE.159326  华夏中证电网设备主题ET   3        ¥445,500.00      ¥0.00      BUY (+445,500)
+SHSE.515790  华泰柏瑞中证光伏产业ET   1        ¥148,500.00      ¥0.00      BUY (+148,500)
+SZSE.159731  华夏中证石化产业ETF    1        ¥148,500.00      ¥0.00      BUY (+148,500)
+SZSE.159697  鹏华国证石油天然气ETF   1        ¥148,500.00      ¥0.00      BUY (+148,500)

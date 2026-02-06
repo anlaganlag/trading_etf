@@ -25,10 +25,7 @@ class Config:
     WHITELIST_FILE = os.path.join(BASE_DIR, "ETF合并筛选结果.xlsx")
     
     # === 账户配置 ===
-
-    ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '031af80c-019f-11f1-acc4-00163e022aa6')
-    # ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
-    # STRATEGY_ID = '60e6472f-01ac-11f1-a1c0-00ffda9d6e63'
+    ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
     STRATEGY_ID = '02966fb6-0309-11f1-b829-00ffda9d6e63'
     # 用于确保回测一致性的 Token
     GM_TOKEN = os.environ.get('MY_QUANT_TGM_TOKEN')
@@ -152,4 +149,5 @@ class Config:
 # 全局配置实例
 config = Config()
 logger = config.get_logger()
+validate_env = config.validate_env
 
