@@ -11,23 +11,25 @@ from gm.api import (
     OrderSide_Sell, OrderType_Market,
     PositionEffect_Close, PositionSide_Long
 )
-from config import config
+from config import config, logger
 from .signal import get_market_regime, get_ranking
 
 
 def algo(context):
     """主调仓逻辑 - 每日定时执行"""
     current_dt = context.now.replace(tzinfo=None)
+    logger.info(f"--- 🏁 Algo Triggered at {current_dt} ---")
 
     # === 风控前置检查 (仅实盘) ===
     if context.mode == MODE_LIVE:
         context.risk_safe.on_day_start(context)
         if not context.risk_safe.check_daily_loss(context):
-            print(f"⚠️ [ALGO] 触发熔断，今日不交易")
+            logger.warning(f"🧨 [ALGO] 触发每日亏损熔断，今日跳过交易")
             return
 
     # 注入实时行情 (Live)
     if context.mode == MODE_LIVE:
+        logger.debug("💉 Injecting realtime ticks into prices_df...")
         ticks = current(symbols=list(context.whitelist))
         td = {t['symbol']: t['price'] for t in ticks if t['price'] > 0}
         if td:
@@ -42,11 +44,14 @@ def algo(context):
 
     context.rpm.days_count += 1
     if not context.rpm.initialized:
+        logger.info("🆕 Initializing Portfolio Manager...")
         acc = (context.account(account_id=context.account_id) 
                if context.mode == MODE_LIVE else context.account())
         if acc:
             context.rpm.initialize_tranches(acc.cash.nav)
+            logger.info(f"💰 Initialized {config.REBALANCE_PERIOD_T} tranches with NAV: {acc.cash.nav:,.2f}")
         else:
+            logger.error("❌ Failed to get account info for initialization")
             return
 
     # 1. 更新价值与止损
@@ -56,6 +61,7 @@ def algo(context):
         to_sell = t.check_guard(price_map, current_dt)
         if to_sell:
             t.guard_triggered_today = True
+            logger.warning(f"🛡️ [Tranche {t.id}] Guard Triggered! Selling: {to_sell}")
             for s in to_sell:
                 t.sell(s, price_map.get(s, 0))
         else:
@@ -64,39 +70,37 @@ def algo(context):
     # 2. 轮动调仓 (Soft Rotation)
     active_idx = (context.rpm.days_count - 1) % config.REBALANCE_PERIOD_T
     active_t = context.rpm.tranches[active_idx]
+    logger.info(f"🔄 Processing Tranche Index: {active_idx} (Day {context.rpm.days_count})")
 
     rank_df, _ = get_ranking(context, current_dt)
+    
     if rank_df is not None and not active_t.guard_triggered_today:
-        # 动态 TOP_N
-        if config.DYNAMIC_TOP_N:
-            current_top_n = config.TOP_N_BY_STATE.get(context.market_state, config.TOP_N)
-        else:
-            current_top_n = config.TOP_N
-
-        # A. 生成目标候选名单
+        current_top_n = config.TOP_N
+        # A. 生成目标候选名单 (Top N + Buffer)
         candidates = []
         themes = {}
         for code, row in rank_df.iterrows():
             if themes.get(row['theme'], 0) < config.MAX_PER_THEME:
                 candidates.append(code)
                 themes[row['theme']] = themes.get(row['theme'], 0) + 1
-
+        
         core_targets = candidates[:current_top_n]
         buffer_targets = candidates[:current_top_n + config.TURNOVER_BUFFER]
-
-        # B. 智能保留逻辑
+        
+        # B. 智能保留逻辑 (Soft Rotation)
         existing_holdings = list(active_t.holdings.keys())
-        kept_holdings = []
-        targets_to_buy = []
-
+        kept_holdings, targets_to_buy = [], []
         current_slots_used = 0
+        
         for s in existing_holdings:
             if s in buffer_targets and current_slots_used < current_top_n:
                 kept_holdings.append(s)
                 current_slots_used += 1
+                logger.info(f"🤝 [Tranche {active_idx}] Kept in Buffer: {s}")
             else:
                 active_t.sell(s, price_map.get(s, 0))
-
+                logger.info(f"💨 [Tranche {active_idx}] Dropped from Buffer: {s}")
+        
         # C. 填充新标的
         for s in core_targets:
             if current_slots_used >= current_top_n:
@@ -105,11 +109,11 @@ def algo(context):
                 targets_to_buy.append(s)
                 current_slots_used += 1
 
-        # D. 执行买入
-        scale = (
-            (get_market_regime(context, current_dt) if config.DYNAMIC_POSITION else 1.0) *
-            (context.risk_scaler if config.ENABLE_META_GATE else 1.0)
-        )
+        # D. 执行配置与买入
+        scale = (get_market_regime(context, current_dt) if config.DYNAMIC_POSITION else 1.0) * \
+                (context.risk_scaler if config.ENABLE_META_GATE else 1.0)
+        
+        logger.info(f"🚦 Market State: {context.market_state} | Scale: {scale:.2%}")
 
         final_list = kept_holdings + targets_to_buy
         weights = {
@@ -134,20 +138,27 @@ def algo(context):
                             if len(daily_rets) >= config.ATR_LOOKBACK:
                                 vol = daily_rets.tail(config.ATR_LOOKBACK).std()
                     active_t.buy(s, diff_val, price_map.get(s, 0), current_dt, vol)
+                    logger.info(f"🛒 [Tranche {active_idx}] Buying {s} | Target Val: {target_val:,.0f}")
                 elif diff_val < -100:
                     if abs(diff_val) > target_val * 0.2:
                         qty = int(abs(diff_val) / price_map.get(s, 1) / 100) * 100
                         if qty > 0:
                             active_t.sell_qty(s, qty, price_map.get(s, 0))
     else:
-        # 排名失败或当天止损，全卖
+        logger.warning(f"⚠️ [ALGO] Ranking failed or guard triggered today. Tranche {active_idx} liquidation.")
         for s in list(active_t.holdings.keys()):
             active_t.sell(s, price_map.get(s, 0))
 
-    # 3. 最终同步
+    # 3. 最终同步 (Order Execution)
     tgt_qty = context.rpm.total_holdings
     acc = (context.account(account_id=context.account_id) 
            if context.mode == MODE_LIVE else context.account())
+    
+    if not acc:
+        logger.error("❌ Failed to sync: Account object is None")
+        return
+
+    # A. 卖出多余持仓
     for pos in acc.positions():
         diff = pos.amount - tgt_qty.get(pos.symbol, 0)
         if diff > 0 and pos.available > 0:
@@ -159,25 +170,27 @@ def algo(context):
                 position_effect=PositionEffect_Close
             )
 
+    # B. 买入目标仓位
     for sym, qty in tgt_qty.items():
-        order_target_volume(
-            symbol=sym,
-            volume=int(qty),
-            position_side=PositionSide_Long,
-            order_type=OrderType_Market
-        )
+        if qty > 0:
+            order_target_volume(
+                symbol=sym,
+                volume=int(qty),
+                position_side=PositionSide_Long,
+                order_type=OrderType_Market
+            )
 
     context.rpm.save_state()
 
     # === 每日收盘汇报 (仅实盘) ===
     if context.mode == MODE_LIVE:
-        print(f"📤 Sending Daily Reports...")
+        logger.info("📤 Algorithm finished. Triggering notifications...")
         context.mailer.send_report(context)
         context.wechat.send_report(context)
 
 
 def on_bar(context, bars):
-    """盘中高频止损"""
+    """盘中高频止损监控"""
     if context.mode == MODE_BACKTEST:
         return
     
@@ -206,7 +219,7 @@ def on_bar(context, bars):
                 )
                 
                 if is_stop:
-                    print(f"⚡ Guard Trigger: {bar.symbol}")
+                    logger.warning(f"⚡ [on_bar] Guard Trigger for {bar.symbol}! Liquidating.")
                     order_target_percent(
                         symbol=bar.symbol,
                         percent=0,
@@ -225,7 +238,9 @@ def on_backtest_finished(context, indicator):
     )
     dtn_status = "Dynamic" if config.DYNAMIC_TOP_N else f"Fixed {config.TOP_N}"
     
-    print(f"\n=== REPORT (BUFFER={config.TURNOVER_BUFFER}, SL={dsl_status}, TOP_N={dtn_status}) ===")
-    print(f"Return: {indicator.get('pnl_ratio', 0)*100:.2f}% | "
-          f"MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}% | "
-          f"Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
+    logger.info("=" * 60)
+    logger.info(f"📊 BACKTEST REPORT (BUFFER={config.TURNOVER_BUFFER}, SL={dsl_status}, TOP_N={dtn_status})")
+    logger.info(f"🚀 Return: {indicator.get('pnl_ratio', 0)*100:.2f}%")
+    logger.info(f"📉 MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}%")
+    logger.info(f"💎 Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
+    logger.info("=" * 60)

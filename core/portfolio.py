@@ -146,24 +146,8 @@ class RollingPortfolioManager:
         self.state_path = state_path or os.path.join(config.BASE_DIR, config.STATE_FILE)
         self.nav_history = []
 
-    def load_state(self):
-        """加载状态"""
-        if not os.path.exists(self.state_path):
-            return False
-        try:
-            with open(self.state_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                self.days_count = data.get("days_count", 0)
-                self.tranches = [Tranche.from_dict(d) for d in data.get("tranches", [])]
-                self.initialized = True
-            print(f"✅ Loaded State: Day {self.days_count}")
-            return True
-        except Exception as e:
-            print(f"⚠️ Load State Failed: {e}")
-        return False
-
     def save_state(self):
-        """保存状态"""
+        """保存状态 - 原子操作"""
         try:
             temp_path = self.state_path + '.tmp'
             with open(temp_path, 'w', encoding='utf-8') as f:
@@ -171,11 +155,34 @@ class RollingPortfolioManager:
                     "days_count": self.days_count,
                     "tranches": [t.to_dict() for t in self.tranches]
                 }, f, indent=2)
-            if os.path.exists(self.state_path):
-                os.remove(self.state_path)
-            os.rename(temp_path, self.state_path)
-        except Exception:
-            pass
+                f.flush()
+                # 显式刷盘（在 Windows 上确保安全）
+                os.fsync(f.fileno())
+            
+            # 使用 os.replace 实现原子替换 (跨平台友好)
+            os.replace(temp_path, self.state_path)
+            # config.logger.debug(f"💾 State saved to {self.state_path}")
+        except Exception as e:
+            from config import logger
+            logger.error(f"❌ Save State Failed: {e}")
+
+    def load_state(self):
+        """加载状态"""
+        from config import logger
+        if not os.path.exists(self.state_path):
+            return False
+            
+        try:
+            with open(self.state_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                self.days_count = data.get("days_count", 0)
+                self.tranches = [Tranche.from_dict(d) for d in data.get("tranches", [])]
+                self.initialized = True
+            logger.info(f"✅ Loaded State: Day {self.days_count}")
+            return True
+        except Exception as e:
+            logger.error(f"⚠️ Load State Failed: {e}")
+        return False
 
     def initialize_tranches(self, total_cash):
         """初始化份额"""

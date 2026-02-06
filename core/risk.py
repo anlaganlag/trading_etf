@@ -4,7 +4,7 @@
 - DataGuard: 数据质检
 """
 from gm.api import MODE_LIVE
-from config import config
+from config import config, logger
 
 
 class RiskController:
@@ -27,7 +27,7 @@ class RiskController:
             self.reject_count = 0
             self.active = True
             self.last_day = current_day
-            print(f"🛡️ [RISK] Day Start: NAV Locked at {self.initial_nav_today:.2f}")
+            logger.info(f"🛡️ [RISK] Day Start: NAV Locked at {self.initial_nav_today:,.2f}")
 
     def check_daily_loss(self, context):
         """检查单日亏损是否触达熔断线"""
@@ -41,8 +41,8 @@ class RiskController:
 
         if dd_pct > config.MAX_DAILY_LOSS_PCT:
             if self.active:
-                print(f"🧨 [RISK MELTDOWN] Daily Loss {dd_pct:.2%} > Limit "
-                      f"{config.MAX_DAILY_LOSS_PCT:.2%}. TRADING HALTED.")
+                logger.error(f"🧨 [RISK MELTDOWN] Daily Loss {dd_pct:.2%} > Limit "
+                             f"{config.MAX_DAILY_LOSS_PCT:.2%}. NAV: {current_nav:,.2f}. HALTING.")
                 self.active = False
             return False
         return True
@@ -52,9 +52,14 @@ class RiskController:
         if not self.active:
             return False
 
+        # 检查是否由于废单过多导致停止
+        if self.reject_count >= config.MAX_REJECT_COUNT:
+            logger.error(f"❌ [RISK] Too many rejected orders ({self.reject_count}). Blocking new orders.")
+            return False
+
         if total_scan_val > 0 and (value / total_scan_val) > config.MAX_ORDER_VAL_PCT + 0.05:
-            print(f"🛡️ [RISK] Order Reject: {symbol} Val {value:.0f} > "
-                  f"Max {config.MAX_ORDER_VAL_PCT:.0%} of NAV")
+            logger.warning(f"🛡️ [RISK] Order Reject: {symbol} Val {value:.0f} > "
+                           f"Max {config.MAX_ORDER_VAL_PCT:.0%} of NAV")
             return False
         return True
 

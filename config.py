@@ -1,9 +1,12 @@
 """
-配置中心 - 所有策略参数集中管理
+配置中心 - 所有策略参数集中管理与环境校验
 """
 import os
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
 
+# 加载 .env 文件
 load_dotenv()
 
 class Config:
@@ -12,14 +15,20 @@ class Config:
     # === 路径配置 ===
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DATA_CACHE_DIR = os.path.join(BASE_DIR, "data_cache")
+    LOG_DIR = os.path.join(BASE_DIR, "logs")
     OUTPUT_DIR = os.path.join(BASE_DIR, "output")
     DATA_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "data")
     REPORT_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "reports")
     CHART_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "charts")
     
+    # === 基础文件 ===
+    WHITELIST_FILE = os.path.join(BASE_DIR, "ETF合并筛选结果.xlsx")
+    
     # === 账户配置 ===
     ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
     STRATEGY_ID = '60e6472f-01ac-11f1-a1c0-00ffda9d6e63'
+    # 用于确保回测一致性的 Token
+    GM_TOKEN = os.environ.get('MY_QUANT_TGM_TOKEN')
     
     # === 时间窗口 ===
     START_DATE = '2021-12-03 09:00:00'
@@ -42,22 +51,18 @@ class Config:
     ENABLE_META_GATE = True      # 开启 Meta-Gate 防御
     SCORING_METHOD = 'SMOOTH'    # 评分方法
     
-    # === 基准配置 ===
+    # === 状态文件 ===
     MACRO_BENCHMARK = 'SZSE.159915'  # 创业板ETF作为宏观锚点
     STATE_FILE = "rolling_state_main.json"
     
-    # === 保护期配置 ===
+    # === 保护期与缓冲 ===
     PROTECTION_DAYS = int(os.environ.get('OPT_PROTECTION_DAYS', 0))
-    
-    # === 软冲销配置 ===
     TURNOVER_BUFFER = 2          # 缓冲区大小
     
-    # === 动态止损配置 (实验性，默认关闭) ===
+    # === 动态止损与 TOP_N (实验性) ===
     DYNAMIC_STOP_LOSS = False
     ATR_MULTIPLIER = 2.5
     ATR_LOOKBACK = 20
-    
-    # === 动态 TOP_N 配置 (实验性，默认关闭) ===
     DYNAMIC_TOP_N = False
     TOP_N_BY_STATE = {
         'SAFE': 5,
@@ -71,18 +76,7 @@ class Config:
     MAX_REJECT_COUNT = 5         # 单日废单容忍度
     DATA_TIMEOUT_SEC = 180       # 数据延迟容忍(秒)
     
-    # === 板块评分配置 ===
-    SECTOR_TOP_N_THRESHOLD = 15
-    SECTOR_PERIOD_SCORES = {
-        1: 100,
-        3: 70,
-        5: 50,
-        10: 30,
-        20: 20,
-    }
-    ETF_SECTOR_LIMIT = 1
-    
-    # === 邮件配置 ===
+    # === 邮件通知配置 ===
     EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.163.com')
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 465))
     EMAIL_USER = os.environ.get('EMAIL_USER', 'tanjhu@163.com')
@@ -94,19 +88,65 @@ class Config:
         'WECHAT_WEBHOOK', 
         'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=aa6eb940-0d50-489f-801e-26c467d77a30'
     )
-    
-    # === 缓存配置 ===
-    USE_CACHE = False            # 是否使用数据缓存
-    
-    @classmethod
-    def ensure_dirs(cls):
-        """确保目录存在"""
-        for path in [cls.DATA_CACHE_DIR, cls.DATA_OUTPUT_DIR, 
-                     cls.REPORT_OUTPUT_DIR, cls.CHART_OUTPUT_DIR]:
-            if not os.path.exists(path):
-                os.makedirs(path, exist_ok=True)
 
+    _logger = None
+
+    @classmethod
+    def get_logger(cls):
+        """获取统一日志记录器"""
+        if cls._logger is None:
+            # 确保日志目录存在
+            if not os.path.exists(cls.LOG_DIR):
+                os.makedirs(cls.LOG_DIR, exist_ok=True)
+            
+            logger = logging.getLogger("ETF_Strategy")
+            logger.setLevel(logging.INFO)
+            
+            # 控制台输出
+            ch = logging.StreamHandler()
+            ch.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            logger.addHandler(ch)
+            
+            # 文件输出
+            log_file = os.path.join(cls.LOG_DIR, f"strategy_{datetime.now().strftime('%Y%m%d')}.log")
+            fh = logging.FileHandler(log_file, encoding='utf-8')
+            fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            logger.addHandler(fh)
+            
+            cls._logger = logger
+        return cls._logger
+
+    @classmethod
+    def validate_env(cls, mode='BACKTEST'):
+        """环境预检"""
+        log = cls.get_logger()
+        log.info(f"🔍 Perform environment validation (Mode: {mode})...")
+        
+        # 1. 检查关键目录
+        for d in [cls.DATA_CACHE_DIR, cls.LOG_DIR, cls.DATA_OUTPUT_DIR, 
+                  cls.REPORT_OUTPUT_DIR, cls.CHART_OUTPUT_DIR]:
+            if not os.path.exists(d):
+                os.makedirs(d, exist_ok=True)
+                log.info(f"📁 Created directory: {d}")
+
+        # 2. 检查关键文件
+        if not os.path.exists(cls.WHITELIST_FILE):
+            log.error(f"❌ Missing critical file: {cls.WHITELIST_FILE}")
+            return False
+
+        # 3. 检查环境变量
+        if not cls.GM_TOKEN:
+            log.error("❌ Environment variable 'MY_QUANT_TGM_TOKEN' is missing!")
+            return False
+            
+        if mode == 'LIVE' and not cls.ACCOUNT_ID:
+            log.error("❌ LIVE MODE: 'GM_ACCOUNT_ID' must be configured!")
+            return False
+
+        log.info("✅ Environment validation passed.")
+        return True
 
 # 全局配置实例
 config = Config()
-config.ensure_dirs()
+logger = config.get_logger()
+
