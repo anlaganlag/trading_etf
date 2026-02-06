@@ -1,0 +1,1000 @@
+2026-02-06 16:59:48,856 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:48,877 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-01 14:55:00 ---
+2026-02-06 16:59:48,879 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 865)
+2026-02-06 16:59:48,895 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:48,896 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159851 | Target Val: 46
+2026-02-06 16:59:48,896 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515050 | Target Val: 46
+2026-02-06 16:59:48,897 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515880 | Target Val: 46
+2026-02-06 16:59:48,897 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512400 | Target Val: 46
+2026-02-06 16:59:48,919 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-02 14:55:00 ---
+2026-02-06 16:59:48,921 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 866)
+2026-02-06 16:59:48,940 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:48,941 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515880 | Target Val: 44
+2026-02-06 16:59:48,941 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159851 | Target Val: 44
+2026-02-06 16:59:48,941 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515050 | Target Val: 44
+2026-02-06 16:59:48,941 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.512710 | Target Val: 44
+2026-02-06 16:59:48,958 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-03 14:55:00 ---
+2026-02-06 16:59:48,959 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 867)
+2026-02-06 16:59:48,973 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:48,974 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:48,974 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:48,974 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159851 | Target Val: 37
+2026-02-06 16:59:48,974 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159227 | Target Val: 37
+2026-02-06 16:59:48,990 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-04 14:55:00 ---
+2026-02-06 16:59:48,991 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 868)
+2026-02-06 16:59:49,005 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,005 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159851 | Target Val: 50
+2026-02-06 16:59:49,005 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159869 | Target Val: 50
+2026-02-06 16:59:49,005 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515050 | Target Val: 50
+2026-02-06 16:59:49,005 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515880 | Target Val: 50
+2026-02-06 16:59:49,022 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-07 14:55:00 ---
+2026-02-06 16:59:49,022 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 869)
+2026-02-06 16:59:49,038 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,038 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159227 | Target Val: 41
+2026-02-06 16:59:49,038 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.512710 | Target Val: 41
+2026-02-06 16:59:49,038 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:49,038 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.516160 | Target Val: 41
+2026-02-06 16:59:49,055 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-08 14:55:00 ---
+2026-02-06 16:59:49,056 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 870)
+2026-02-06 16:59:49,070 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,071 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:49,071 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159227 | Target Val: 41
+2026-02-06 16:59:49,071 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:49,072 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.512670 | Target Val: 41
+2026-02-06 16:59:49,089 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-09 14:55:00 ---
+2026-02-06 16:59:49,090 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 871)
+2026-02-06 16:59:49,103 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,104 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.512800 | Target Val: 38
+2026-02-06 16:59:49,104 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159227 | Target Val: 38
+2026-02-06 16:59:49,104 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159869 | Target Val: 38
+2026-02-06 16:59:49,104 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.512670 | Target Val: 38
+2026-02-06 16:59:49,123 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-10 14:55:00 ---
+2026-02-06 16:59:49,125 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 872)
+2026-02-06 16:59:49,136 - ETF_Strategy - INFO - 💨 [Tranche 1] Dropped from Buffer: SHSE.515880
+2026-02-06 16:59:49,138 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,138 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159851 | Target Val: 47
+2026-02-06 16:59:49,138 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512800 | Target Val: 47
+2026-02-06 16:59:49,139 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159227 | Target Val: 47
+2026-02-06 16:59:49,139 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512670 | Target Val: 47
+2026-02-06 16:59:49,157 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-11 14:55:00 ---
+2026-02-06 16:59:49,158 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 873)
+2026-02-06 16:59:49,175 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,176 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515790 | Target Val: 45
+2026-02-06 16:59:49,176 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515050 | Target Val: 45
+2026-02-06 16:59:49,176 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515880 | Target Val: 45
+2026-02-06 16:59:49,176 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159851 | Target Val: 45
+2026-02-06 16:59:49,210 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-14 14:55:00 ---
+2026-02-06 16:59:49,211 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 874)
+2026-02-06 16:59:49,227 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,227 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:49,227 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159851 | Target Val: 37
+2026-02-06 16:59:49,227 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515790 | Target Val: 37
+2026-02-06 16:59:49,227 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.516160 | Target Val: 37
+2026-02-06 16:59:49,284 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-15 14:55:00 ---
+2026-02-06 16:59:49,286 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 875)
+2026-02-06 16:59:49,306 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,306 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515790 | Target Val: 46
+2026-02-06 16:59:49,306 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159851 | Target Val: 46
+2026-02-06 16:59:49,307 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515880 | Target Val: 46
+2026-02-06 16:59:49,307 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515210 | Target Val: 46
+2026-02-06 16:59:49,336 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-16 14:55:00 ---
+2026-02-06 16:59:49,338 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 876)
+2026-02-06 16:59:49,357 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,358 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159851 | Target Val: 44
+2026-02-06 16:59:49,358 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515790 | Target Val: 44
+2026-02-06 16:59:49,358 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516150 | Target Val: 44
+2026-02-06 16:59:49,358 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.562800 | Target Val: 44
+2026-02-06 16:59:49,382 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-17 14:55:00 ---
+2026-02-06 16:59:49,382 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 877)
+2026-02-06 16:59:49,408 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,408 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159851 | Target Val: 37
+2026-02-06 16:59:49,408 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515790 | Target Val: 37
+2026-02-06 16:59:49,408 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.516150 | Target Val: 37
+2026-02-06 16:59:49,409 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515210 | Target Val: 37
+2026-02-06 16:59:49,444 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-18 14:55:00 ---
+2026-02-06 16:59:49,445 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 878)
+2026-02-06 16:59:49,465 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,466 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159851 | Target Val: 39
+2026-02-06 16:59:49,466 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.516510 | Target Val: 39
+2026-02-06 16:59:49,466 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159915 | Target Val: 39
+2026-02-06 16:59:49,466 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515210 | Target Val: 39
+2026-02-06 16:59:49,493 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-21 14:55:00 ---
+2026-02-06 16:59:49,495 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 879)
+2026-02-06 16:59:49,519 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,519 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515790 | Target Val: 41
+2026-02-06 16:59:49,519 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.516510 | Target Val: 41
+2026-02-06 16:59:49,520 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:49,520 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:49,541 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-22 14:55:00 ---
+2026-02-06 16:59:49,541 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 880)
+2026-02-06 16:59:49,558 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,558 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:49,558 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:49,558 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515790 | Target Val: 41
+2026-02-06 16:59:49,558 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159745 | Target Val: 41
+2026-02-06 16:59:49,575 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-23 14:55:00 ---
+2026-02-06 16:59:49,576 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 881)
+2026-02-06 16:59:49,590 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,592 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515880 | Target Val: 38
+2026-02-06 16:59:49,592 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515050 | Target Val: 38
+2026-02-06 16:59:49,592 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.516510 | Target Val: 38
+2026-02-06 16:59:49,592 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.516150 | Target Val: 38
+2026-02-06 16:59:49,608 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-24 14:55:00 ---
+2026-02-06 16:59:49,610 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 882)
+2026-02-06 16:59:49,624 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,624 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159745 | Target Val: 47
+2026-02-06 16:59:49,624 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515880 | Target Val: 47
+2026-02-06 16:59:49,625 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515050 | Target Val: 47
+2026-02-06 16:59:49,625 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.516150 | Target Val: 47
+2026-02-06 16:59:49,642 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-25 14:55:00 ---
+2026-02-06 16:59:49,643 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 883)
+2026-02-06 16:59:49,658 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,658 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515210 | Target Val: 45
+2026-02-06 16:59:49,658 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515050 | Target Val: 45
+2026-02-06 16:59:49,659 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515880 | Target Val: 45
+2026-02-06 16:59:49,659 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159745 | Target Val: 45
+2026-02-06 16:59:49,675 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-28 14:55:00 ---
+2026-02-06 16:59:49,677 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 884)
+2026-02-06 16:59:49,693 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,693 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:49,694 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515210 | Target Val: 37
+2026-02-06 16:59:49,694 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:49,694 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159745 | Target Val: 37
+2026-02-06 16:59:49,712 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-29 14:55:00 ---
+2026-02-06 16:59:49,713 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 885)
+2026-02-06 16:59:49,728 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,728 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515210 | Target Val: 46
+2026-02-06 16:59:49,728 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.516150 | Target Val: 46
+2026-02-06 16:59:49,728 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.562800 | Target Val: 46
+2026-02-06 16:59:49,728 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515880 | Target Val: 46
+2026-02-06 16:59:49,745 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-30 14:55:00 ---
+2026-02-06 16:59:49,746 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 886)
+2026-02-06 16:59:49,760 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,760 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516150 | Target Val: 44
+2026-02-06 16:59:49,761 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.562800 | Target Val: 44
+2026-02-06 16:59:49,761 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516510 | Target Val: 44
+2026-02-06 16:59:49,761 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515210 | Target Val: 44
+2026-02-06 16:59:49,778 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-07-31 14:55:00 ---
+2026-02-06 16:59:49,779 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 887)
+2026-02-06 16:59:49,794 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,794 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.516150 | Target Val: 37
+2026-02-06 16:59:49,794 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.562800 | Target Val: 37
+2026-02-06 16:59:49,795 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:49,795 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:49,812 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-01 14:55:00 ---
+2026-02-06 16:59:49,813 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 888)
+2026-02-06 16:59:49,827 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,827 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.516150 | Target Val: 39
+2026-02-06 16:59:49,827 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515050 | Target Val: 39
+2026-02-06 16:59:49,827 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159992 | Target Val: 39
+2026-02-06 16:59:49,827 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159859 | Target Val: 39
+2026-02-06 16:59:49,842 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-04 14:55:00 ---
+2026-02-06 16:59:49,843 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 889)
+2026-02-06 16:59:49,856 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,857 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.516150 | Target Val: 41
+2026-02-06 16:59:49,857 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:49,858 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:49,858 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159992 | Target Val: 41
+2026-02-06 16:59:49,874 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-05 14:55:00 ---
+2026-02-06 16:59:49,875 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 890)
+2026-02-06 16:59:49,893 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,893 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:49,893 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159992 | Target Val: 41
+2026-02-06 16:59:49,893 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.516150 | Target Val: 41
+2026-02-06 16:59:49,893 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:49,914 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-06 14:55:00 ---
+2026-02-06 16:59:49,916 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 891)
+2026-02-06 16:59:49,933 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,934 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.562800 | Target Val: 38
+2026-02-06 16:59:49,934 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515050 | Target Val: 38
+2026-02-06 16:59:49,934 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.516150 | Target Val: 38
+2026-02-06 16:59:49,934 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.516510 | Target Val: 38
+2026-02-06 16:59:49,951 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-07 14:55:00 ---
+2026-02-06 16:59:49,952 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 892)
+2026-02-06 16:59:49,966 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:49,967 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515050 | Target Val: 47
+2026-02-06 16:59:49,967 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515880 | Target Val: 47
+2026-02-06 16:59:49,967 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159819 | Target Val: 47
+2026-02-06 16:59:49,967 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.516510 | Target Val: 47
+2026-02-06 16:59:49,982 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-08 14:55:00 ---
+2026-02-06 16:59:49,984 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 893)
+2026-02-06 16:59:49,998 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,000 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515880 | Target Val: 45
+2026-02-06 16:59:50,000 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515050 | Target Val: 45
+2026-02-06 16:59:50,000 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159819 | Target Val: 45
+2026-02-06 16:59:50,000 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.562800 | Target Val: 45
+2026-02-06 16:59:50,014 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-11 14:55:00 ---
+2026-02-06 16:59:50,016 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 894)
+2026-02-06 16:59:50,028 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,029 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159819 | Target Val: 37
+2026-02-06 16:59:50,029 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.516510 | Target Val: 37
+2026-02-06 16:59:50,029 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:50,029 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:50,049 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-12 14:55:00 ---
+2026-02-06 16:59:50,051 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 895)
+2026-02-06 16:59:50,066 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,066 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.516150 | Target Val: 46
+2026-02-06 16:59:50,066 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515220 | Target Val: 46
+2026-02-06 16:59:50,066 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512400 | Target Val: 46
+2026-02-06 16:59:50,066 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.562800 | Target Val: 46
+2026-02-06 16:59:50,084 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-13 14:55:00 ---
+2026-02-06 16:59:50,085 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 896)
+2026-02-06 16:59:50,098 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,099 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.562800 | Target Val: 44
+2026-02-06 16:59:50,099 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.512400 | Target Val: 44
+2026-02-06 16:59:50,099 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516150 | Target Val: 44
+2026-02-06 16:59:50,100 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515880 | Target Val: 44
+2026-02-06 16:59:50,116 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-14 14:55:00 ---
+2026-02-06 16:59:50,117 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 897)
+2026-02-06 16:59:50,130 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,130 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.516150 | Target Val: 37
+2026-02-06 16:59:50,131 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.562800 | Target Val: 37
+2026-02-06 16:59:50,131 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.512400 | Target Val: 37
+2026-02-06 16:59:50,131 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159667 | Target Val: 37
+2026-02-06 16:59:50,149 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-15 14:55:00 ---
+2026-02-06 16:59:50,150 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 898)
+2026-02-06 16:59:50,163 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,164 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.562800 | Target Val: 39
+2026-02-06 16:59:50,164 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159667 | Target Val: 39
+2026-02-06 16:59:50,164 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.516150 | Target Val: 39
+2026-02-06 16:59:50,164 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.562500 | Target Val: 39
+2026-02-06 16:59:50,179 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-18 14:55:00 ---
+2026-02-06 16:59:50,181 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 899)
+2026-02-06 16:59:50,196 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,196 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:50,196 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:50,198 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159819 | Target Val: 41
+2026-02-06 16:59:50,198 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.562800 | Target Val: 41
+2026-02-06 16:59:50,215 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-19 14:55:00 ---
+2026-02-06 16:59:50,216 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 900)
+2026-02-06 16:59:50,229 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,229 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:50,229 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:50,229 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159819 | Target Val: 41
+2026-02-06 16:59:50,230 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159667 | Target Val: 41
+2026-02-06 16:59:50,247 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-20 14:55:00 ---
+2026-02-06 16:59:50,248 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 901)
+2026-02-06 16:59:50,264 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,264 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159599 | Target Val: 38
+2026-02-06 16:59:50,264 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159819 | Target Val: 38
+2026-02-06 16:59:50,265 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159851 | Target Val: 38
+2026-02-06 16:59:50,265 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159995 | Target Val: 38
+2026-02-06 16:59:50,282 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-21 14:55:00 ---
+2026-02-06 16:59:50,283 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 902)
+2026-02-06 16:59:50,298 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,298 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159851 | Target Val: 47
+2026-02-06 16:59:50,298 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515000 | Target Val: 47
+2026-02-06 16:59:50,298 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159869 | Target Val: 47
+2026-02-06 16:59:50,298 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.516510 | Target Val: 47
+2026-02-06 16:59:50,317 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-22 14:55:00 ---
+2026-02-06 16:59:50,319 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 903)
+2026-02-06 16:59:50,332 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,334 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515880 | Target Val: 45
+2026-02-06 16:59:50,334 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515050 | Target Val: 45
+2026-02-06 16:59:50,334 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159851 | Target Val: 45
+2026-02-06 16:59:50,334 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159915 | Target Val: 45
+2026-02-06 16:59:50,350 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-25 14:55:00 ---
+2026-02-06 16:59:50,352 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 904)
+2026-02-06 16:59:50,367 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,368 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:50,368 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:50,369 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159819 | Target Val: 37
+2026-02-06 16:59:50,369 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.516150 | Target Val: 37
+2026-02-06 16:59:50,386 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-26 14:55:00 ---
+2026-02-06 16:59:50,387 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 905)
+2026-02-06 16:59:50,403 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,403 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159869 | Target Val: 46
+2026-02-06 16:59:50,403 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159732 | Target Val: 46
+2026-02-06 16:59:50,403 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515050 | Target Val: 46
+2026-02-06 16:59:50,404 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159851 | Target Val: 46
+2026-02-06 16:59:50,420 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-27 14:55:00 ---
+2026-02-06 16:59:50,422 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 906)
+2026-02-06 16:59:50,437 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,437 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159599 | Target Val: 44
+2026-02-06 16:59:50,438 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159851 | Target Val: 44
+2026-02-06 16:59:50,438 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159819 | Target Val: 44
+2026-02-06 16:59:50,438 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515880 | Target Val: 44
+2026-02-06 16:59:50,455 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-28 14:55:00 ---
+2026-02-06 16:59:50,457 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 907)
+2026-02-06 16:59:50,471 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,471 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:50,471 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159819 | Target Val: 37
+2026-02-06 16:59:50,471 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.516150 | Target Val: 37
+2026-02-06 16:59:50,471 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159995 | Target Val: 37
+2026-02-06 16:59:50,489 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-08-29 14:55:00 ---
+2026-02-06 16:59:50,491 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 908)
+2026-02-06 16:59:50,506 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,507 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159995 | Target Val: 39
+2026-02-06 16:59:50,507 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515050 | Target Val: 39
+2026-02-06 16:59:50,507 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159851 | Target Val: 39
+2026-02-06 16:59:50,507 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515880 | Target Val: 39
+2026-02-06 16:59:50,526 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-01 14:55:00 ---
+2026-02-06 16:59:50,527 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 909)
+2026-02-06 16:59:50,541 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,542 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159599 | Target Val: 41
+2026-02-06 16:59:50,542 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:50,542 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.516150 | Target Val: 41
+2026-02-06 16:59:50,542 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159995 | Target Val: 41
+2026-02-06 16:59:50,557 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-02 14:55:00 ---
+2026-02-06 16:59:50,559 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 910)
+2026-02-06 16:59:50,574 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,574 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:50,574 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:50,575 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159819 | Target Val: 41
+2026-02-06 16:59:50,575 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159995 | Target Val: 41
+2026-02-06 16:59:50,592 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-03 14:55:00 ---
+2026-02-06 16:59:50,594 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 911)
+2026-02-06 16:59:50,608 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,608 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159819 | Target Val: 38
+2026-02-06 16:59:50,608 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515050 | Target Val: 38
+2026-02-06 16:59:50,609 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159995 | Target Val: 38
+2026-02-06 16:59:50,609 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515880 | Target Val: 38
+2026-02-06 16:59:50,626 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-04 14:55:00 ---
+2026-02-06 16:59:50,627 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 912)
+2026-02-06 16:59:50,640 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,640 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515880 | Target Val: 47
+2026-02-06 16:59:50,640 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515050 | Target Val: 47
+2026-02-06 16:59:50,640 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159915 | Target Val: 47
+2026-02-06 16:59:50,640 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159755 | Target Val: 47
+2026-02-06 16:59:50,658 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-05 14:55:00 ---
+2026-02-06 16:59:50,659 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 913)
+2026-02-06 16:59:50,674 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,675 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515880 | Target Val: 45
+2026-02-06 16:59:50,675 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515050 | Target Val: 45
+2026-02-06 16:59:50,675 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159819 | Target Val: 45
+2026-02-06 16:59:50,676 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515000 | Target Val: 45
+2026-02-06 16:59:50,690 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-08 14:55:00 ---
+2026-02-06 16:59:50,693 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 914)
+2026-02-06 16:59:50,706 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,706 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159915 | Target Val: 37
+2026-02-06 16:59:50,706 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.517520 | Target Val: 37
+2026-02-06 16:59:50,706 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159755 | Target Val: 37
+2026-02-06 16:59:50,706 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.516150 | Target Val: 37
+2026-02-06 16:59:50,723 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-09 14:55:00 ---
+2026-02-06 16:59:50,724 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 915)
+2026-02-06 16:59:50,737 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,738 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515880 | Target Val: 46
+2026-02-06 16:59:50,738 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515050 | Target Val: 46
+2026-02-06 16:59:50,738 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.517520 | Target Val: 46
+2026-02-06 16:59:50,738 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.516150 | Target Val: 46
+2026-02-06 16:59:50,754 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-10 14:55:00 ---
+2026-02-06 16:59:50,755 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 916)
+2026-02-06 16:59:50,769 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,769 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515880 | Target Val: 44
+2026-02-06 16:59:50,769 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515050 | Target Val: 44
+2026-02-06 16:59:50,769 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159819 | Target Val: 44
+2026-02-06 16:59:50,769 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159755 | Target Val: 44
+2026-02-06 16:59:50,785 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-11 14:55:00 ---
+2026-02-06 16:59:50,786 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 917)
+2026-02-06 16:59:50,800 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,800 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159755 | Target Val: 37
+2026-02-06 16:59:50,800 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515030 | Target Val: 37
+2026-02-06 16:59:50,800 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.516160 | Target Val: 37
+2026-02-06 16:59:50,800 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:50,817 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-12 14:55:00 ---
+2026-02-06 16:59:50,818 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 918)
+2026-02-06 16:59:50,834 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,834 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.517520 | Target Val: 39
+2026-02-06 16:59:50,835 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159755 | Target Val: 39
+2026-02-06 16:59:50,835 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515030 | Target Val: 39
+2026-02-06 16:59:50,835 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.516160 | Target Val: 39
+2026-02-06 16:59:50,852 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-15 14:55:00 ---
+2026-02-06 16:59:50,853 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 919)
+2026-02-06 16:59:50,867 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,868 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159755 | Target Val: 41
+2026-02-06 16:59:50,868 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515030 | Target Val: 41
+2026-02-06 16:59:50,869 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.517520 | Target Val: 41
+2026-02-06 16:59:50,869 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.516160 | Target Val: 41
+2026-02-06 16:59:50,883 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-16 14:55:00 ---
+2026-02-06 16:59:50,884 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 920)
+2026-02-06 16:59:50,900 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,900 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:50,900 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:50,900 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.517520 | Target Val: 41
+2026-02-06 16:59:50,900 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515000 | Target Val: 41
+2026-02-06 16:59:50,918 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-17 14:55:00 ---
+2026-02-06 16:59:50,919 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 921)
+2026-02-06 16:59:50,940 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,941 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515050 | Target Val: 38
+2026-02-06 16:59:50,941 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515880 | Target Val: 38
+2026-02-06 16:59:50,941 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159755 | Target Val: 38
+2026-02-06 16:59:50,941 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.517520 | Target Val: 38
+2026-02-06 16:59:50,963 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-18 14:55:00 ---
+2026-02-06 16:59:50,963 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 922)
+2026-02-06 16:59:50,982 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:50,983 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515050 | Target Val: 47
+2026-02-06 16:59:50,984 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159755 | Target Val: 47
+2026-02-06 16:59:50,984 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.516160 | Target Val: 47
+2026-02-06 16:59:50,984 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515880 | Target Val: 47
+2026-02-06 16:59:51,004 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-19 14:55:00 ---
+2026-02-06 16:59:51,006 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 923)
+2026-02-06 16:59:51,021 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,021 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.517520 | Target Val: 45
+2026-02-06 16:59:51,021 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159755 | Target Val: 45
+2026-02-06 16:59:51,021 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159790 | Target Val: 45
+2026-02-06 16:59:51,021 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.516160 | Target Val: 45
+2026-02-06 16:59:51,040 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-22 14:55:00 ---
+2026-02-06 16:59:51,042 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 924)
+2026-02-06 16:59:51,060 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,060 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159755 | Target Val: 37
+2026-02-06 16:59:51,061 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515030 | Target Val: 37
+2026-02-06 16:59:51,061 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.516160 | Target Val: 37
+2026-02-06 16:59:51,061 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.517520 | Target Val: 37
+2026-02-06 16:59:51,123 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-23 14:55:00 ---
+2026-02-06 16:59:51,124 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 925)
+2026-02-06 16:59:51,145 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,146 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.516160 | Target Val: 46
+2026-02-06 16:59:51,147 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159755 | Target Val: 46
+2026-02-06 16:59:51,148 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159790 | Target Val: 46
+2026-02-06 16:59:51,148 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515030 | Target Val: 46
+2026-02-06 16:59:51,170 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-24 14:55:00 ---
+2026-02-06 16:59:51,171 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 926)
+2026-02-06 16:59:51,187 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,187 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516160 | Target Val: 44
+2026-02-06 16:59:51,188 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159755 | Target Val: 44
+2026-02-06 16:59:51,188 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515030 | Target Val: 44
+2026-02-06 16:59:51,188 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159790 | Target Val: 44
+2026-02-06 16:59:51,205 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-25 14:55:00 ---
+2026-02-06 16:59:51,206 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 927)
+2026-02-06 16:59:51,221 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,221 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.517520 | Target Val: 37
+2026-02-06 16:59:51,221 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159667 | Target Val: 37
+2026-02-06 16:59:51,221 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:51,221 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515030 | Target Val: 37
+2026-02-06 16:59:51,237 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-26 14:55:00 ---
+2026-02-06 16:59:51,239 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 928)
+2026-02-06 16:59:51,261 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,261 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.517520 | Target Val: 39
+2026-02-06 16:59:51,262 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159755 | Target Val: 39
+2026-02-06 16:59:51,263 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159732 | Target Val: 39
+2026-02-06 16:59:51,263 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159516 | Target Val: 39
+2026-02-06 16:59:51,282 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-29 14:55:00 ---
+2026-02-06 16:59:51,284 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 929)
+2026-02-06 16:59:51,302 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,302 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159516 | Target Val: 41
+2026-02-06 16:59:51,303 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159995 | Target Val: 41
+2026-02-06 16:59:51,303 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159755 | Target Val: 41
+2026-02-06 16:59:51,303 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159732 | Target Val: 41
+2026-02-06 16:59:51,321 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-09-30 14:55:00 ---
+2026-02-06 16:59:51,322 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 930)
+2026-02-06 16:59:51,340 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,340 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159599 | Target Val: 41
+2026-02-06 16:59:51,340 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159516 | Target Val: 41
+2026-02-06 16:59:51,340 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159755 | Target Val: 41
+2026-02-06 16:59:51,342 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159732 | Target Val: 41
+2026-02-06 16:59:51,360 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-09 14:55:00 ---
+2026-02-06 16:59:51,362 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 931)
+2026-02-06 16:59:51,378 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,379 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159516 | Target Val: 38
+2026-02-06 16:59:51,379 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159995 | Target Val: 38
+2026-02-06 16:59:51,379 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159599 | Target Val: 38
+2026-02-06 16:59:51,379 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.516160 | Target Val: 38
+2026-02-06 16:59:51,397 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-10 14:55:00 ---
+2026-02-06 16:59:51,399 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 932)
+2026-02-06 16:59:51,418 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,419 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159516 | Target Val: 47
+2026-02-06 16:59:51,419 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159755 | Target Val: 47
+2026-02-06 16:59:51,419 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159995 | Target Val: 47
+2026-02-06 16:59:51,419 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159599 | Target Val: 47
+2026-02-06 16:59:51,438 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-13 14:55:00 ---
+2026-02-06 16:59:51,440 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 933)
+2026-02-06 16:59:51,456 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,456 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159995 | Target Val: 45
+2026-02-06 16:59:51,456 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159599 | Target Val: 45
+2026-02-06 16:59:51,456 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159755 | Target Val: 45
+2026-02-06 16:59:51,456 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159516 | Target Val: 45
+2026-02-06 16:59:51,477 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-14 14:55:00 ---
+2026-02-06 16:59:51,478 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 934)
+2026-02-06 16:59:51,495 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,495 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159516 | Target Val: 37
+2026-02-06 16:59:51,496 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.512400 | Target Val: 37
+2026-02-06 16:59:51,496 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.517520 | Target Val: 37
+2026-02-06 16:59:51,496 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159599 | Target Val: 37
+2026-02-06 16:59:51,517 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-15 14:55:00 ---
+2026-02-06 16:59:51,518 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 935)
+2026-02-06 16:59:51,532 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,533 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159326 | Target Val: 46
+2026-02-06 16:59:51,533 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159516 | Target Val: 46
+2026-02-06 16:59:51,534 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159995 | Target Val: 46
+2026-02-06 16:59:51,534 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159599 | Target Val: 46
+2026-02-06 16:59:51,553 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-16 14:55:00 ---
+2026-02-06 16:59:51,555 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 936)
+2026-02-06 16:59:51,569 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,569 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159516 | Target Val: 44
+2026-02-06 16:59:51,569 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516160 | Target Val: 44
+2026-02-06 16:59:51,569 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159995 | Target Val: 44
+2026-02-06 16:59:51,569 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.512400 | Target Val: 44
+2026-02-06 16:59:51,586 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-17 14:55:00 ---
+2026-02-06 16:59:51,588 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 937)
+2026-02-06 16:59:51,604 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:51,604 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159516 | Target Val: 33
+2026-02-06 16:59:51,605 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.512400 | Target Val: 33
+2026-02-06 16:59:51,605 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.517520 | Target Val: 33
+2026-02-06 16:59:51,606 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.562800 | Target Val: 33
+2026-02-06 16:59:51,621 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-20 14:55:00 ---
+2026-02-06 16:59:51,622 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 938)
+2026-02-06 16:59:51,636 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:51,636 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159326 | Target Val: 35
+2026-02-06 16:59:51,636 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159755 | Target Val: 35
+2026-02-06 16:59:51,637 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515030 | Target Val: 35
+2026-02-06 16:59:51,637 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159790 | Target Val: 35
+2026-02-06 16:59:51,651 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-21 14:55:00 ---
+2026-02-06 16:59:51,652 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 939)
+2026-02-06 16:59:51,669 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,669 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159516 | Target Val: 41
+2026-02-06 16:59:51,669 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159326 | Target Val: 41
+2026-02-06 16:59:51,669 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.512400 | Target Val: 41
+2026-02-06 16:59:51,669 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159599 | Target Val: 41
+2026-02-06 16:59:51,686 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-22 14:55:00 ---
+2026-02-06 16:59:51,686 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 940)
+2026-02-06 16:59:51,699 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:51,699 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159516 | Target Val: 37
+2026-02-06 16:59:51,700 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515220 | Target Val: 37
+2026-02-06 16:59:51,700 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.512400 | Target Val: 37
+2026-02-06 16:59:51,700 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.562800 | Target Val: 37
+2026-02-06 16:59:51,715 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-23 14:55:00 ---
+2026-02-06 16:59:51,716 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 941)
+2026-02-06 16:59:51,730 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:51,731 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515220 | Target Val: 34
+2026-02-06 16:59:51,731 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.512400 | Target Val: 34
+2026-02-06 16:59:51,731 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159930 | Target Val: 34
+2026-02-06 16:59:51,731 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159516 | Target Val: 34
+2026-02-06 16:59:51,748 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-24 14:55:00 ---
+2026-02-06 16:59:51,749 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 942)
+2026-02-06 16:59:51,763 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,763 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515220 | Target Val: 47
+2026-02-06 16:59:51,764 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512400 | Target Val: 47
+2026-02-06 16:59:51,764 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.517520 | Target Val: 47
+2026-02-06 16:59:51,764 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159930 | Target Val: 47
+2026-02-06 16:59:51,780 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-27 14:55:00 ---
+2026-02-06 16:59:51,781 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 943)
+2026-02-06 16:59:51,795 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,795 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.517520 | Target Val: 45
+2026-02-06 16:59:51,795 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.512400 | Target Val: 45
+2026-02-06 16:59:51,795 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.516150 | Target Val: 45
+2026-02-06 16:59:51,795 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515220 | Target Val: 45
+2026-02-06 16:59:51,812 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-28 14:55:00 ---
+2026-02-06 16:59:51,813 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 944)
+2026-02-06 16:59:51,826 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,827 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.512400 | Target Val: 37
+2026-02-06 16:59:51,827 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515220 | Target Val: 37
+2026-02-06 16:59:51,827 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.516160 | Target Val: 37
+2026-02-06 16:59:51,827 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.562800 | Target Val: 37
+2026-02-06 16:59:51,844 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-29 14:55:00 ---
+2026-02-06 16:59:51,846 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 945)
+2026-02-06 16:59:51,858 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,859 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512400 | Target Val: 46
+2026-02-06 16:59:51,859 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.562800 | Target Val: 46
+2026-02-06 16:59:51,859 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.516150 | Target Val: 46
+2026-02-06 16:59:51,859 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515220 | Target Val: 46
+2026-02-06 16:59:51,875 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-30 14:55:00 ---
+2026-02-06 16:59:51,877 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 946)
+2026-02-06 16:59:51,890 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,892 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515210 | Target Val: 44
+2026-02-06 16:59:51,892 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.512400 | Target Val: 44
+2026-02-06 16:59:51,893 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516150 | Target Val: 44
+2026-02-06 16:59:51,893 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.562800 | Target Val: 44
+2026-02-06 16:59:51,910 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-10-31 14:55:00 ---
+2026-02-06 16:59:51,911 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 947)
+2026-02-06 16:59:51,926 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,927 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515220 | Target Val: 37
+2026-02-06 16:59:51,927 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.516150 | Target Val: 37
+2026-02-06 16:59:51,928 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159930 | Target Val: 37
+2026-02-06 16:59:51,928 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159611 | Target Val: 37
+2026-02-06 16:59:51,945 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-03 14:55:00 ---
+2026-02-06 16:59:51,946 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 948)
+2026-02-06 16:59:51,962 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:51,962 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.562800 | Target Val: 39
+2026-02-06 16:59:51,962 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159326 | Target Val: 39
+2026-02-06 16:59:51,963 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.512400 | Target Val: 39
+2026-02-06 16:59:51,963 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515220 | Target Val: 39
+2026-02-06 16:59:51,982 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-04 14:55:00 ---
+2026-02-06 16:59:51,985 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 949)
+2026-02-06 16:59:52,000 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,000 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.562800 | Target Val: 37
+2026-02-06 16:59:52,001 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159611 | Target Val: 37
+2026-02-06 16:59:52,001 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515220 | Target Val: 37
+2026-02-06 16:59:52,001 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159625 | Target Val: 37
+2026-02-06 16:59:52,015 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-05 14:55:00 ---
+2026-02-06 16:59:52,017 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 950)
+2026-02-06 16:59:52,029 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,031 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515220 | Target Val: 37
+2026-02-06 16:59:52,031 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159326 | Target Val: 37
+2026-02-06 16:59:52,031 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515790 | Target Val: 37
+2026-02-06 16:59:52,031 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159611 | Target Val: 37
+2026-02-06 16:59:52,046 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-06 14:55:00 ---
+2026-02-06 16:59:52,047 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 951)
+2026-02-06 16:59:52,061 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:52,061 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159930 | Target Val: 38
+2026-02-06 16:59:52,061 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.510720 | Target Val: 38
+2026-02-06 16:59:52,061 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159697 | Target Val: 38
+2026-02-06 16:59:52,061 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159766 | Target Val: 38
+2026-02-06 16:59:52,079 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-07 14:55:00 ---
+2026-02-06 16:59:52,081 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 952)
+2026-02-06 16:59:52,094 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:52,095 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159930 | Target Val: 47
+2026-02-06 16:59:52,095 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159766 | Target Val: 47
+2026-02-06 16:59:52,096 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512800 | Target Val: 47
+2026-02-06 16:59:52,096 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.510720 | Target Val: 47
+2026-02-06 16:59:52,113 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-10 14:55:00 ---
+2026-02-06 16:59:52,114 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 953)
+2026-02-06 16:59:52,126 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:52,127 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515220 | Target Val: 45
+2026-02-06 16:59:52,127 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159790 | Target Val: 45
+2026-02-06 16:59:52,127 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159930 | Target Val: 45
+2026-02-06 16:59:52,127 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159326 | Target Val: 45
+2026-02-06 16:59:52,145 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-11 14:55:00 ---
+2026-02-06 16:59:52,146 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 954)
+2026-02-06 16:59:52,161 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:52,161 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159326 | Target Val: 37
+2026-02-06 16:59:52,161 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159790 | Target Val: 37
+2026-02-06 16:59:52,161 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.516160 | Target Val: 37
+2026-02-06 16:59:52,162 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515790 | Target Val: 37
+2026-02-06 16:59:52,177 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-12 14:55:00 ---
+2026-02-06 16:59:52,178 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 955)
+2026-02-06 16:59:52,192 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:52,193 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159930 | Target Val: 46
+2026-02-06 16:59:52,193 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515790 | Target Val: 46
+2026-02-06 16:59:52,193 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159697 | Target Val: 46
+2026-02-06 16:59:52,193 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515880 | Target Val: 46
+2026-02-06 16:59:52,210 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-13 14:55:00 ---
+2026-02-06 16:59:52,211 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 956)
+2026-02-06 16:59:52,224 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:52,224 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515790 | Target Val: 44
+2026-02-06 16:59:52,224 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159326 | Target Val: 44
+2026-02-06 16:59:52,224 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516160 | Target Val: 44
+2026-02-06 16:59:52,225 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159790 | Target Val: 44
+2026-02-06 16:59:52,243 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-14 14:55:00 ---
+2026-02-06 16:59:52,244 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 957)
+2026-02-06 16:59:52,257 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,258 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515790 | Target Val: 33
+2026-02-06 16:59:52,258 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159326 | Target Val: 33
+2026-02-06 16:59:52,258 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159766 | Target Val: 33
+2026-02-06 16:59:52,258 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159790 | Target Val: 33
+2026-02-06 16:59:52,276 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-17 14:55:00 ---
+2026-02-06 16:59:52,277 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 958)
+2026-02-06 16:59:52,290 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,291 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515790 | Target Val: 35
+2026-02-06 16:59:52,291 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159766 | Target Val: 35
+2026-02-06 16:59:52,291 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159870 | Target Val: 35
+2026-02-06 16:59:52,291 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159326 | Target Val: 35
+2026-02-06 16:59:52,308 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-18 14:55:00 ---
+2026-02-06 16:59:52,309 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 959)
+2026-02-06 16:59:52,322 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,322 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159870 | Target Val: 12
+2026-02-06 16:59:52,322 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.516160 | Target Val: 12
+2026-02-06 16:59:52,322 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515790 | Target Val: 12
+2026-02-06 16:59:52,323 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159731 | Target Val: 12
+2026-02-06 16:59:52,342 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-19 14:55:00 ---
+2026-02-06 16:59:52,343 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 960)
+2026-02-06 16:59:52,356 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,356 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159870 | Target Val: 12
+2026-02-06 16:59:52,357 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.516160 | Target Val: 12
+2026-02-06 16:59:52,357 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515030 | Target Val: 12
+2026-02-06 16:59:52,357 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159755 | Target Val: 12
+2026-02-06 16:59:52,373 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-20 14:55:00 ---
+2026-02-06 16:59:52,375 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 961)
+2026-02-06 16:59:52,388 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,388 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.562800 | Target Val: 11
+2026-02-06 16:59:52,388 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159870 | Target Val: 11
+2026-02-06 16:59:52,388 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.516160 | Target Val: 11
+2026-02-06 16:59:52,389 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515790 | Target Val: 11
+2026-02-06 16:59:52,405 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-21 14:55:00 ---
+2026-02-06 16:59:52,406 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 962)
+2026-02-06 16:59:52,419 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,419 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159731 | Target Val: 14
+2026-02-06 16:59:52,420 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159697 | Target Val: 14
+2026-02-06 16:59:52,420 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159930 | Target Val: 14
+2026-02-06 16:59:52,420 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512690 | Target Val: 14
+2026-02-06 16:59:52,437 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-24 14:55:00 ---
+2026-02-06 16:59:52,438 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 963)
+2026-02-06 16:59:52,452 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,452 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.512690 | Target Val: 14
+2026-02-06 16:59:52,452 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.512980 | Target Val: 14
+2026-02-06 16:59:52,452 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515170 | Target Val: 14
+2026-02-06 16:59:52,452 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.512890 | Target Val: 14
+2026-02-06 16:59:52,469 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-25 14:55:00 ---
+2026-02-06 16:59:52,471 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 964)
+2026-02-06 16:59:52,485 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,485 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159766 | Target Val: 11
+2026-02-06 16:59:52,485 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159870 | Target Val: 11
+2026-02-06 16:59:52,485 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159697 | Target Val: 11
+2026-02-06 16:59:52,485 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515790 | Target Val: 11
+2026-02-06 16:59:52,501 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-26 14:55:00 ---
+2026-02-06 16:59:52,502 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 965)
+2026-02-06 16:59:52,518 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,518 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159766 | Target Val: 14
+2026-02-06 16:59:52,518 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512800 | Target Val: 14
+2026-02-06 16:59:52,519 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512890 | Target Val: 14
+2026-02-06 16:59:52,519 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.515650 | Target Val: 14
+2026-02-06 16:59:52,603 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-27 14:55:00 ---
+2026-02-06 16:59:52,605 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 966)
+2026-02-06 16:59:52,621 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,622 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.512800 | Target Val: 13
+2026-02-06 16:59:52,622 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159766 | Target Val: 13
+2026-02-06 16:59:52,622 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159731 | Target Val: 13
+2026-02-06 16:59:52,622 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.512980 | Target Val: 13
+2026-02-06 16:59:52,638 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-11-28 14:55:00 ---
+2026-02-06 16:59:52,640 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 967)
+2026-02-06 16:59:52,653 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,653 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159697 | Target Val: 11
+2026-02-06 16:59:52,654 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.512800 | Target Val: 11
+2026-02-06 16:59:52,654 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159766 | Target Val: 11
+2026-02-06 16:59:52,654 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159731 | Target Val: 11
+2026-02-06 16:59:52,670 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-01 14:55:00 ---
+2026-02-06 16:59:52,671 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 968)
+2026-02-06 16:59:52,686 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,686 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159766 | Target Val: 35
+2026-02-06 16:59:52,687 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.512800 | Target Val: 35
+2026-02-06 16:59:52,687 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.517520 | Target Val: 35
+2026-02-06 16:59:52,688 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159731 | Target Val: 35
+2026-02-06 16:59:52,720 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-02 14:55:00 ---
+2026-02-06 16:59:52,722 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 969)
+2026-02-06 16:59:52,740 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,740 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159870 | Target Val: 12
+2026-02-06 16:59:52,740 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159731 | Target Val: 12
+2026-02-06 16:59:52,740 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.513690 | Target Val: 12
+2026-02-06 16:59:52,740 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515650 | Target Val: 12
+2026-02-06 16:59:52,756 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-03 14:55:00 ---
+2026-02-06 16:59:52,758 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 970)
+2026-02-06 16:59:52,776 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,776 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159870 | Target Val: 12
+2026-02-06 16:59:52,776 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159731 | Target Val: 12
+2026-02-06 16:59:52,777 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515650 | Target Val: 12
+2026-02-06 16:59:52,777 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159825 | Target Val: 12
+2026-02-06 16:59:52,793 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-04 14:55:00 ---
+2026-02-06 16:59:52,795 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 971)
+2026-02-06 16:59:52,807 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,807 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.517520 | Target Val: 11
+2026-02-06 16:59:52,808 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159766 | Target Val: 11
+2026-02-06 16:59:52,808 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159870 | Target Val: 11
+2026-02-06 16:59:52,808 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159206 | Target Val: 11
+2026-02-06 16:59:52,824 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-05 14:55:00 ---
+2026-02-06 16:59:52,826 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 972)
+2026-02-06 16:59:52,841 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,842 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.517520 | Target Val: 43
+2026-02-06 16:59:52,842 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515880 | Target Val: 43
+2026-02-06 16:59:52,842 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159227 | Target Val: 43
+2026-02-06 16:59:52,842 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159206 | Target Val: 43
+2026-02-06 16:59:52,859 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-08 14:55:00 ---
+2026-02-06 16:59:52,861 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 973)
+2026-02-06 16:59:52,873 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,873 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159819 | Target Val: 41
+2026-02-06 16:59:52,873 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.512400 | Target Val: 41
+2026-02-06 16:59:52,873 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:52,873 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:52,908 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-09 14:55:00 ---
+2026-02-06 16:59:52,908 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 974)
+2026-02-06 16:59:52,922 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,922 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515880 | Target Val: 33
+2026-02-06 16:59:52,922 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159819 | Target Val: 33
+2026-02-06 16:59:52,923 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.560280 | Target Val: 33
+2026-02-06 16:59:52,923 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159206 | Target Val: 33
+2026-02-06 16:59:52,943 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-10 14:55:00 ---
+2026-02-06 16:59:52,945 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 975)
+2026-02-06 16:59:52,958 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:52,958 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.560280 | Target Val: 42
+2026-02-06 16:59:52,959 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159206 | Target Val: 42
+2026-02-06 16:59:52,959 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159227 | Target Val: 42
+2026-02-06 16:59:52,959 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512400 | Target Val: 42
+2026-02-06 16:59:52,975 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-11 14:55:00 ---
+2026-02-06 16:59:52,976 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 976)
+2026-02-06 16:59:52,993 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:52,993 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159819 | Target Val: 13
+2026-02-06 16:59:52,993 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159206 | Target Val: 13
+2026-02-06 16:59:52,993 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159227 | Target Val: 13
+2026-02-06 16:59:52,993 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.516510 | Target Val: 13
+2026-02-06 16:59:53,013 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-12 14:55:00 ---
+2026-02-06 16:59:53,014 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 977)
+2026-02-06 16:59:53,027 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:53,029 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515880 | Target Val: 33
+2026-02-06 16:59:53,029 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.516510 | Target Val: 33
+2026-02-06 16:59:53,029 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159819 | Target Val: 33
+2026-02-06 16:59:53,029 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515050 | Target Val: 33
+2026-02-06 16:59:53,048 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-15 14:55:00 ---
+2026-02-06 16:59:53,049 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 978)
+2026-02-06 16:59:53,062 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:53,062 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515880 | Target Val: 35
+2026-02-06 16:59:53,062 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515050 | Target Val: 35
+2026-02-06 16:59:53,062 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.560280 | Target Val: 35
+2026-02-06 16:59:53,062 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159819 | Target Val: 35
+2026-02-06 16:59:53,078 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-16 14:55:00 ---
+2026-02-06 16:59:53,079 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 979)
+2026-02-06 16:59:53,093 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 30.00%
+2026-02-06 16:59:53,094 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515880 | Target Val: 12
+2026-02-06 16:59:53,094 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515050 | Target Val: 12
+2026-02-06 16:59:53,094 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.517520 | Target Val: 12
+2026-02-06 16:59:53,094 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.560280 | Target Val: 12
+2026-02-06 16:59:53,110 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-17 14:55:00 ---
+2026-02-06 16:59:53,111 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 980)
+2026-02-06 16:59:53,124 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:53,124 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:53,124 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159819 | Target Val: 37
+2026-02-06 16:59:53,124 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515000 | Target Val: 37
+2026-02-06 16:59:53,124 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:53,150 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-18 14:55:00 ---
+2026-02-06 16:59:53,150 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 981)
+2026-02-06 16:59:53,164 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:53,164 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159378 | Target Val: 34
+2026-02-06 16:59:53,164 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159227 | Target Val: 34
+2026-02-06 16:59:53,164 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.512670 | Target Val: 34
+2026-02-06 16:59:53,165 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159206 | Target Val: 34
+2026-02-06 16:59:53,182 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-19 14:55:00 ---
+2026-02-06 16:59:53,184 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 982)
+2026-02-06 16:59:53,196 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:53,196 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159227 | Target Val: 43
+2026-02-06 16:59:53,196 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512670 | Target Val: 43
+2026-02-06 16:59:53,197 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159516 | Target Val: 43
+2026-02-06 16:59:53,197 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.515050 | Target Val: 43
+2026-02-06 16:59:53,216 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-22 14:55:00 ---
+2026-02-06 16:59:53,218 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 983)
+2026-02-06 16:59:53,230 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:53,230 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515050 | Target Val: 41
+2026-02-06 16:59:53,231 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159819 | Target Val: 41
+2026-02-06 16:59:53,231 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515000 | Target Val: 41
+2026-02-06 16:59:53,231 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:53,249 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-23 14:55:00 ---
+2026-02-06 16:59:53,251 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 984)
+2026-02-06 16:59:53,264 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 90.00%
+2026-02-06 16:59:53,264 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159206 | Target Val: 33
+2026-02-06 16:59:53,265 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515000 | Target Val: 33
+2026-02-06 16:59:53,265 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.515050 | Target Val: 33
+2026-02-06 16:59:53,265 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159516 | Target Val: 33
+2026-02-06 16:59:53,281 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-24 14:55:00 ---
+2026-02-06 16:59:53,282 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 985)
+2026-02-06 16:59:53,295 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,295 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159206 | Target Val: 46
+2026-02-06 16:59:53,295 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159227 | Target Val: 46
+2026-02-06 16:59:53,295 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159638 | Target Val: 46
+2026-02-06 16:59:53,296 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512670 | Target Val: 46
+2026-02-06 16:59:53,312 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-25 14:55:00 ---
+2026-02-06 16:59:53,314 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 986)
+2026-02-06 16:59:53,327 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,328 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.515880 | Target Val: 44
+2026-02-06 16:59:53,328 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159516 | Target Val: 44
+2026-02-06 16:59:53,328 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159206 | Target Val: 44
+2026-02-06 16:59:53,328 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159638 | Target Val: 44
+2026-02-06 16:59:53,345 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-26 14:55:00 ---
+2026-02-06 16:59:53,347 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 987)
+2026-02-06 16:59:53,360 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,360 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515880 | Target Val: 37
+2026-02-06 16:59:53,361 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.515050 | Target Val: 37
+2026-02-06 16:59:53,361 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159206 | Target Val: 37
+2026-02-06 16:59:53,362 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.512400 | Target Val: 37
+2026-02-06 16:59:53,379 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-29 14:55:00 ---
+2026-02-06 16:59:53,379 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 988)
+2026-02-06 16:59:53,393 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,393 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515880 | Target Val: 39
+2026-02-06 16:59:53,393 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.515050 | Target Val: 39
+2026-02-06 16:59:53,394 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159638 | Target Val: 39
+2026-02-06 16:59:53,394 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159227 | Target Val: 39
+2026-02-06 16:59:53,412 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-30 14:55:00 ---
+2026-02-06 16:59:53,413 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 989)
+2026-02-06 16:59:53,428 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,428 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.512670 | Target Val: 41
+2026-02-06 16:59:53,428 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:53,428 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159227 | Target Val: 41
+2026-02-06 16:59:53,429 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159667 | Target Val: 41
+2026-02-06 16:59:53,445 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2025-12-31 14:55:00 ---
+2026-02-06 16:59:53,447 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 990)
+2026-02-06 16:59:53,459 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,459 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.512400 | Target Val: 41
+2026-02-06 16:59:53,460 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.515880 | Target Val: 41
+2026-02-06 16:59:53,460 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159206 | Target Val: 41
+2026-02-06 16:59:53,461 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159638 | Target Val: 41
+2026-02-06 16:59:53,483 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-05 14:55:00 ---
+2026-02-06 16:59:53,484 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 991)
+2026-02-06 16:59:53,499 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,499 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.515880 | Target Val: 38
+2026-02-06 16:59:53,499 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159227 | Target Val: 38
+2026-02-06 16:59:53,499 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.512670 | Target Val: 38
+2026-02-06 16:59:53,500 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159667 | Target Val: 38
+2026-02-06 16:59:53,516 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-06 14:55:00 ---
+2026-02-06 16:59:53,517 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 992)
+2026-02-06 16:59:53,530 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,531 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159870 | Target Val: 47
+2026-02-06 16:59:53,531 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159731 | Target Val: 47
+2026-02-06 16:59:53,531 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159638 | Target Val: 47
+2026-02-06 16:59:53,531 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512710 | Target Val: 47
+2026-02-06 16:59:53,548 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-07 14:55:00 ---
+2026-02-06 16:59:53,549 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 993)
+2026-02-06 16:59:53,562 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,562 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159206 | Target Val: 45
+2026-02-06 16:59:53,563 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159227 | Target Val: 45
+2026-02-06 16:59:53,563 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159378 | Target Val: 45
+2026-02-06 16:59:53,563 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.512670 | Target Val: 45
+2026-02-06 16:59:53,582 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-08 14:55:00 ---
+2026-02-06 16:59:53,584 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 994)
+2026-02-06 16:59:53,597 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,598 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159206 | Target Val: 37
+2026-02-06 16:59:53,598 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159638 | Target Val: 37
+2026-02-06 16:59:53,598 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.512710 | Target Val: 37
+2026-02-06 16:59:53,598 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159227 | Target Val: 37
+2026-02-06 16:59:53,613 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-09 14:55:00 ---
+2026-02-06 16:59:53,614 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 995)
+2026-02-06 16:59:53,628 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,628 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512400 | Target Val: 46
+2026-02-06 16:59:53,628 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.562800 | Target Val: 46
+2026-02-06 16:59:53,628 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159206 | Target Val: 46
+2026-02-06 16:59:53,628 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159638 | Target Val: 46
+2026-02-06 16:59:53,646 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-12 14:55:00 ---
+2026-02-06 16:59:53,647 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 5 (Day 996)
+2026-02-06 16:59:53,660 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,661 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159206 | Target Val: 44
+2026-02-06 16:59:53,661 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159638 | Target Val: 44
+2026-02-06 16:59:53,661 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SHSE.512710 | Target Val: 44
+2026-02-06 16:59:53,661 - ETF_Strategy - INFO - 🛒 [Tranche 5] Buying SZSE.159516 | Target Val: 44
+2026-02-06 16:59:53,679 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-13 14:55:00 ---
+2026-02-06 16:59:53,682 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 6 (Day 997)
+2026-02-06 16:59:53,695 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,696 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159227 | Target Val: 37
+2026-02-06 16:59:53,696 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.512670 | Target Val: 37
+2026-02-06 16:59:53,696 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SZSE.159638 | Target Val: 37
+2026-02-06 16:59:53,696 - ETF_Strategy - INFO - 🛒 [Tranche 6] Buying SHSE.512710 | Target Val: 37
+2026-02-06 16:59:53,714 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-14 14:55:00 ---
+2026-02-06 16:59:53,714 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 7 (Day 998)
+2026-02-06 16:59:53,727 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,728 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159638 | Target Val: 39
+2026-02-06 16:59:53,728 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.512710 | Target Val: 39
+2026-02-06 16:59:53,728 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SHSE.512670 | Target Val: 39
+2026-02-06 16:59:53,728 - ETF_Strategy - INFO - 🛒 [Tranche 7] Buying SZSE.159206 | Target Val: 39
+2026-02-06 16:59:53,744 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-15 14:55:00 ---
+2026-02-06 16:59:53,745 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 8 (Day 999)
+2026-02-06 16:59:53,757 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,757 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SZSE.159206 | Target Val: 41
+2026-02-06 16:59:53,757 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.512980 | Target Val: 41
+2026-02-06 16:59:53,758 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.515400 | Target Val: 41
+2026-02-06 16:59:53,758 - ETF_Strategy - INFO - 🛒 [Tranche 8] Buying SHSE.512710 | Target Val: 41
+2026-02-06 16:59:53,776 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-16 14:55:00 ---
+2026-02-06 16:59:53,777 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 9 (Day 1000)
+2026-02-06 16:59:53,789 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,790 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159206 | Target Val: 41
+2026-02-06 16:59:53,790 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.512980 | Target Val: 41
+2026-02-06 16:59:53,790 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SZSE.159638 | Target Val: 41
+2026-02-06 16:59:53,790 - ETF_Strategy - INFO - 🛒 [Tranche 9] Buying SHSE.512670 | Target Val: 41
+2026-02-06 16:59:53,811 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-19 14:55:00 ---
+2026-02-06 16:59:53,813 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 0 (Day 1001)
+2026-02-06 16:59:53,825 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,825 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.512980 | Target Val: 38
+2026-02-06 16:59:53,825 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SZSE.159326 | Target Val: 38
+2026-02-06 16:59:53,825 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.516150 | Target Val: 38
+2026-02-06 16:59:53,827 - ETF_Strategy - INFO - 🛒 [Tranche 0] Buying SHSE.512400 | Target Val: 38
+2026-02-06 16:59:53,844 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-20 14:55:00 ---
+2026-02-06 16:59:53,846 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 1 (Day 1002)
+2026-02-06 16:59:53,859 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,859 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512710 | Target Val: 47
+2026-02-06 16:59:53,859 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SHSE.512400 | Target Val: 47
+2026-02-06 16:59:53,860 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159638 | Target Val: 47
+2026-02-06 16:59:53,860 - ETF_Strategy - INFO - 🛒 [Tranche 1] Buying SZSE.159378 | Target Val: 47
+2026-02-06 16:59:53,879 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-21 14:55:00 ---
+2026-02-06 16:59:53,881 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 2 (Day 1003)
+2026-02-06 16:59:53,896 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,896 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159516 | Target Val: 45
+2026-02-06 16:59:53,897 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159638 | Target Val: 45
+2026-02-06 16:59:53,897 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SHSE.512710 | Target Val: 45
+2026-02-06 16:59:53,897 - ETF_Strategy - INFO - 🛒 [Tranche 2] Buying SZSE.159731 | Target Val: 45
+2026-02-06 16:59:53,918 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-22 14:55:00 ---
+2026-02-06 16:59:53,919 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 3 (Day 1004)
+2026-02-06 16:59:53,934 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,935 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159206 | Target Val: 37
+2026-02-06 16:59:53,935 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SHSE.512710 | Target Val: 37
+2026-02-06 16:59:53,935 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159227 | Target Val: 37
+2026-02-06 16:59:53,935 - ETF_Strategy - INFO - 🛒 [Tranche 3] Buying SZSE.159638 | Target Val: 37
+2026-02-06 16:59:53,953 - ETF_Strategy - INFO - --- 🏁 Algo Triggered at 2026-01-23 14:55:00 ---
+2026-02-06 16:59:53,955 - ETF_Strategy - INFO - 🔄 Processing Tranche Index: 4 (Day 1005)
+2026-02-06 16:59:53,969 - ETF_Strategy - INFO - 🚦 Market State: SAFE | Scale: 100.00%
+2026-02-06 16:59:53,971 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512980 | Target Val: 46
+2026-02-06 16:59:53,971 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159516 | Target Val: 46
+2026-02-06 16:59:53,971 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SZSE.159206 | Target Val: 46
+2026-02-06 16:59:53,971 - ETF_Strategy - INFO - 🛒 [Tranche 4] Buying SHSE.512710 | Target Val: 46
+2026-02-06 16:59:54,086 - ETF_Strategy - INFO - ============================================================
+2026-02-06 16:59:54,086 - ETF_Strategy - INFO - 📊 掘金量化回测报告 (T+1 次日成交) | BUFFER=2, SL=Fixed 20%
+2026-02-06 16:59:54,087 - ETF_Strategy - INFO - 🚀 Return: -0.97%
+2026-02-06 16:59:54,087 - ETF_Strategy - INFO - 📉 MaxDD: 4.34%
+2026-02-06 16:59:54,087 - ETF_Strategy - INFO - 💎 Sharpe: -0.10
+2026-02-06 16:59:54,091 - ETF_Strategy - INFO - ------------------------------------------------------------
+2026-02-06 16:59:54,092 - ETF_Strategy - INFO - 📈 尾盘模回测报告 (T+0 当日收盘价成交)
+2026-02-06 16:59:54,092 - ETF_Strategy - INFO - 🚀 Return: -99.83%
+2026-02-06 16:59:54,093 - ETF_Strategy - INFO - 📉 MaxDD: 99.83%
+2026-02-06 16:59:54,093 - ETF_Strategy - INFO - 💎 Sharpe: -5.15
+2026-02-06 16:59:54,093 - ETF_Strategy - INFO - ============================================================

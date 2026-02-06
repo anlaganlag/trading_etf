@@ -1,0 +1,52 @@
+Loading Data...
+Data Loaded up to: 2026-02-06 00:00:00
+State loaded. Days Count: 1005
+
+--- Theoretical Prediction for 2026-02-06 ---
+Simulated Day: 1006
+Active Tranche: 5
+
+Top 10 Ranked candidates:
+                    score          r1         r20   theme
+symbol                                                   
+SZSE.159326  148.00000000  0.00519931  0.10056926    电网设备
+SHSE.515790  142.00000000  0.00731261  0.08251473      光伏
+SZSE.159731  135.33333333  0.01816347  0.06659619      石化
+SZSE.159697  124.66666667  0.01136364  0.10148515   石油天然气
+SZSE.159870  119.66666667  0.02640643  0.04683841      化工
+SHSE.560280  105.00000000 -0.01180438  0.05395683    工程机械
+SZSE.159201   95.00000000 -0.00307929  0.04016064   自由现金流
+SHSE.512400   92.00000000  0.00419776  0.02817574    有色金属
+SHSE.563300   90.00000000  0.00543109  0.01927047  国证2000
+SHSE.512040   90.00000000 -0.00322841  0.03607383      价值
+
+Core Targets (Top 4): ['SZSE.159326', 'SHSE.515790', 'SZSE.159731', 'SZSE.159697']
+Buffer Targets (Total 6): ['SZSE.159326', 'SHSE.515790', 'SZSE.159731', 'SZSE.159697', 'SZSE.159870', 'SHSE.560280']
+Existing Holdings in Tranche 5: []
+
+--- Decision Logic ---
+[BUY]  SZSE.159326 (New Entry)
+[BUY]  SHSE.515790 (New Entry)
+[BUY]  SZSE.159731 (New Entry)
+[BUY]  SZSE.159697 (New Entry)
+
+Final Theoretical Portfolio for Tranche 5: ['SZSE.159326', 'SHSE.515790', 'SZSE.159731', 'SZSE.159697']
+
+[Info] Updated Tranche Value using prices from 2026-02-06 00:00:00
+Regime Scale (Trend): 90.00%
+Risk Scale (Meta-Gate): 100.00%
+Total Combined Scale: 90.00%
+
+Active Tranche Total Assets: ¥146.15
+Cash Available: ¥146.15
+Allocatable Value (Scaled): ¥130.22
+
+--- 💰 Target Execution Plan ---
+Ticker       Action Target Weight   Target Value    curr_val        Est. Buy Amount
+------------------------------------------------------------------------------------------
+SZSE.159326  BUY    2               ¥37.21      ¥0.00      ¥37.21
+SHSE.515790  BUY    2               ¥37.21      ¥0.00      ¥37.21
+SZSE.159731  BUY    2               ¥37.21      ¥0.00      ¥37.21
+SZSE.159697  BUY    1               ¥18.60      ¥0.00      ¥18.60
+
+Market State: SAFE
