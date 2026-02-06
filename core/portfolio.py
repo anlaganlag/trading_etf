@@ -5,6 +5,7 @@
 """
 import os
 import json
+import pandas as pd
 from datetime import datetime
 from config import config
 
@@ -144,7 +145,41 @@ class RollingPortfolioManager:
         self.initialized = False
         self.days_count = 0
         self.state_path = state_path or os.path.join(config.BASE_DIR, config.STATE_FILE)
-        self.nav_history = []
+        self.nav_history = []  # List of {'dt': datetime, 'nav': float}
+
+    def record_nav(self, current_dt):
+        """记录当前总净值"""
+        total = sum(t.total_value for t in self.tranches)
+        self.nav_history.append({
+            'dt': current_dt,
+            'nav': total
+        })
+
+    def get_performance_summary(self):
+        """计算基于 RPM 视角的策略表现 (Trade at Close)"""
+        if not self.nav_history:
+            return {}
+        
+        df = pd.DataFrame(self.nav_history).set_index('dt')
+        df['ret'] = df['nav'].pct_change().fillna(0)
+        
+        total_ret = (df['nav'].iloc[-1] / df['nav'].iloc[0]) - 1 if df['nav'].iloc[0] > 0 else 0
+        
+        # Max DD
+        cum_max = df['nav'].cummax()
+        drawdown = (df['nav'] - cum_max) / cum_max
+        max_dd = drawdown.min()
+        
+        # Sharpe (Simplified, assuming daily frequency)
+        mean_ret = df['ret'].mean()
+        std_ret = df['ret'].std()
+        sharpe = (mean_ret / std_ret * (252 ** 0.5)) if std_ret > 0 else 0
+        
+        return {
+            'return': total_ret,
+            'max_dd': abs(max_dd),  # Return absolute value for consistency
+            'sharpe': sharpe
+        }
 
     def save_state(self):
         """保存状态 - 原子操作"""

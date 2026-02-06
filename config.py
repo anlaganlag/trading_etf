@@ -47,8 +47,8 @@ class Config:
     TRAILING_DROP = float(os.environ.get('OPT_TRAILING_DROP', 0.03))
     
     # === 风控开关 ===
-    DYNAMIC_POSITION = True      # 开启动态趋势仓位
-    ENABLE_META_GATE = True      # 开启 Meta-Gate 防御
+    DYNAMIC_POSITION = os.environ.get('OPT_DYNAMIC_POSITION', 'True').lower() == 'true'
+    ENABLE_META_GATE = os.environ.get('OPT_ENABLE_META_GATE', 'True').lower() == 'true'
     SCORING_METHOD = 'SMOOTH'    # 评分方法
     
     # === 状态文件 ===
@@ -57,7 +57,7 @@ class Config:
     
     # === 保护期与缓冲 ===
     PROTECTION_DAYS = int(os.environ.get('OPT_PROTECTION_DAYS', 0))
-    TURNOVER_BUFFER = 2          # 缓冲区大小
+    TURNOVER_BUFFER = int(os.environ.get('OPT_TURNOVER_BUFFER', 2))          # 缓冲区大小
     
     # === 动态止损与 TOP_N (实验性) ===
     DYNAMIC_STOP_LOSS = False

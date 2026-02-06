@@ -180,6 +180,7 @@ def algo(context):
                 order_type=OrderType_Market
             )
 
+    context.rpm.record_nav(current_dt)
     context.rpm.save_state()
 
     # === 每日收盘汇报 (仅实盘) ===
@@ -239,8 +240,17 @@ def on_backtest_finished(context, indicator):
     dtn_status = "Dynamic" if config.DYNAMIC_TOP_N else f"Fixed {config.TOP_N}"
     
     logger.info("=" * 60)
-    logger.info(f"📊 BACKTEST REPORT (BUFFER={config.TURNOVER_BUFFER}, SL={dsl_status}, TOP_N={dtn_status})")
+    logger.info(f"📊 GM ENGINE REPORT (Next-Open Exec) | BUFFER={config.TURNOVER_BUFFER}, SL={dsl_status}")
     logger.info(f"🚀 Return: {indicator.get('pnl_ratio', 0)*100:.2f}%")
     logger.info(f"📉 MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}%")
     logger.info(f"💎 Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
+    
+    # RPM Report (Trade at Close)
+    summary = context.rpm.get_performance_summary()
+    if summary:
+        logger.info("-" * 60)
+        logger.info("📈 STRATEGY LOGIC REPORT (Trade-at-Close Simulation)")
+        logger.info(f"🚀 Return: {summary.get('return', 0)*100:.2f}%")
+        logger.info(f"📉 MaxDD: {summary.get('max_dd', 0)*100:.2f}%")
+        logger.info(f"💎 Sharpe: {summary.get('sharpe', 0):.2f}")
     logger.info("=" * 60)
