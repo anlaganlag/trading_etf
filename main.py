@@ -70,14 +70,42 @@ class Tranche:
         self.guard_triggered_today = False 
 
     def to_dict(self):
-        return self.__dict__
+        """序列化为字典，处理 datetime 对象"""
+        d = self.__dict__.copy()
+        # 处理 pos_records 中的 datetime 对象
+        if 'pos_records' in d:
+            serialized_records = {}
+            for sym, rec in d['pos_records'].items():
+                serialized_rec = rec.copy()
+                # 将 datetime 转换为 ISO 格式字符串
+                if 'entry_dt' in serialized_rec and serialized_rec['entry_dt'] is not None:
+                    if isinstance(serialized_rec['entry_dt'], datetime):
+                        serialized_rec['entry_dt'] = serialized_rec['entry_dt'].isoformat()
+                serialized_records[sym] = serialized_rec
+            d['pos_records'] = serialized_records
+        return d
 
     @staticmethod
     def from_dict(d):
+        """从字典反序列化，处理 datetime 字符串"""
         t = Tranche(d["id"], d["cash"])
         t.holdings = d["holdings"]
-        t.pos_records = d["pos_records"]
         t.total_value = d["total_value"]
+
+        # 处理 pos_records 中的 datetime 字符串
+        t.pos_records = {}
+        for sym, rec in d.get("pos_records", {}).items():
+            deserialized_rec = rec.copy()
+            # 将 ISO 格式字符串转换回 datetime 对象
+            if 'entry_dt' in deserialized_rec and deserialized_rec['entry_dt'] is not None:
+                if isinstance(deserialized_rec['entry_dt'], str):
+                    try:
+                        deserialized_rec['entry_dt'] = datetime.fromisoformat(deserialized_rec['entry_dt'])
+                    except (ValueError, AttributeError):
+                        # 如果解析失败，设为 None
+                        deserialized_rec['entry_dt'] = None
+            t.pos_records[sym] = deserialized_rec
+
         return t
 
     def update_value(self, price_map):
@@ -516,7 +544,17 @@ def get_ranking(context, current_dt):
 
 def algo(context):
     current_dt = context.now.replace(tzinfo=None)
-    
+
+    # === 风控前置检查 (仅实盘) ===
+    if context.mode == MODE_LIVE:
+        # 1. 更新每日初始 NAV（用于熔断检测）
+        risk_safe.on_day_start(context)
+
+        # 2. 检查是否触发熔断
+        if not risk_safe.check_daily_loss(context):
+            print(f"⚠️  [ALGO] 触发熔断，今日不交易")
+            return
+
     # 注入实时行情 (Live)
     if context.mode == MODE_LIVE:
         ticks = current(symbols=list(context.whitelist))
@@ -527,7 +565,7 @@ def algo(context):
 
     context.rpm.days_count += 1
     if not context.rpm.initialized:
-        acc = context.account()
+        acc = context.account(account_id=context.account_id) if context.mode == MODE_LIVE else context.account()
         if acc: context.rpm.initialize_tranches(acc.cash.nav)
         else: return
 
@@ -634,7 +672,8 @@ def algo(context):
 
     # 3. 最终同步
     tgt_qty = context.rpm.total_holdings
-    for pos in context.account().positions():
+    acc = context.account(account_id=context.account_id) if context.mode == MODE_LIVE else context.account()
+    for pos in acc.positions():
         diff = pos.amount - tgt_qty.get(pos.symbol, 0)
         if diff > 0 and pos.available > 0:
             order_volume(symbol=pos.symbol, volume=int(min(diff, pos.available)), side=OrderSide_Sell, order_type=OrderType_Market, position_effect=PositionEffect_Close)
@@ -647,7 +686,6 @@ def algo(context):
     # === 📧 每日收盘汇报 (仅实盘) ===
     if context.mode == MODE_LIVE:
         print(f"📤 Sending Daily Reports...")
-        risk_safe.on_day_start(context) # 更新下Nav用于展示
         mailer.send_report(context)
         wechat.send_report(context)
 
