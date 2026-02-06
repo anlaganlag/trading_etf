@@ -240,7 +240,7 @@ def on_backtest_finished(context, indicator):
     dtn_status = "Dynamic" if config.DYNAMIC_TOP_N else f"Fixed {config.TOP_N}"
     
     logger.info("=" * 60)
-    logger.info(f"📊 GM ENGINE REPORT (Next-Open Exec) | BUFFER={config.TURNOVER_BUFFER}, SL={dsl_status}")
+    logger.info(f"📊 掘金量化回测报告 (T+1 次日成交) | BUFFER={config.TURNOVER_BUFFER}, SL={dsl_status}")
     logger.info(f"🚀 Return: {indicator.get('pnl_ratio', 0)*100:.2f}%")
     logger.info(f"📉 MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}%")
     logger.info(f"💎 Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
@@ -249,7 +249,7 @@ def on_backtest_finished(context, indicator):
     summary = context.rpm.get_performance_summary()
     if summary:
         logger.info("-" * 60)
-        logger.info("📈 STRATEGY LOGIC REPORT (Trade-at-Close Simulation)")
+        logger.info("📈 尾盘模回测报告 (T+0 当日收盘价成交)")
         logger.info(f"🚀 Return: {summary.get('return', 0)*100:.2f}%")
         logger.info(f"📉 MaxDD: {summary.get('max_dd', 0)*100:.2f}%")
         logger.info(f"💎 Sharpe: {summary.get('sharpe', 0):.2f}")
