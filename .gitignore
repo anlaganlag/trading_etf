@@ -25,6 +25,17 @@ nul
 *.log
 *.tmp
 rolling_state_*.json.bak
+gmcache/
+data_cache/
+output/
+
+# Sensitive files - NEVER commit these!
+.env
+*.pem
+*.key
+
+# Keep template but not actual env
+!deploy/.env.template
 
 # Jupyter
 .ipynb_checkpoints/
@@ -34,3 +45,10 @@ rolling_state_*.json.bak
 dist/
 build/
 *.egg-info/
+
+# NSSM binary (download separately)
+deploy/nssm.exe
+
+# Temporary files
+*.bak
+~$*
