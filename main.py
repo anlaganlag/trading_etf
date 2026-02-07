@@ -159,7 +159,7 @@ def run_strategy_safe():
     - 心跳监控
     - 日志清理
     """
-    if not validate_env():
+    if not validate_env('LIVE'):  # 明确指定为 LIVE 模式
         return
 
     set_token(config.GM_TOKEN)
