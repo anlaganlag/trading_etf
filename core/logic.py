@@ -72,8 +72,13 @@ def calculate_target_holdings(context, current_dt, active_t, price_map):
     weights = {}
     for i, s in enumerate(candidates):
         if s in final_list:
-            # === 这里定义了唯一的权重逻辑 ===
-            w = 3 if i == 0 else 1
+            # === 权重逻辑：根据配置选择方案 ===
+            # EQUAL: 等权 (1:1:1:1)
+            # CHAMPION: 冠军加权 (3:1:1:1)
+            if config.WEIGHT_SCHEME == 'EQUAL':
+                w = 1
+            else:
+                w = 3 if i == 0 else 1
             weights[s] = w
             
     return weights

@@ -210,12 +210,15 @@ def run_strategy_safe():
         _stop_heartbeat()
 
 if __name__ == '__main__':
+    weight_label = "等权 (1:1:1:1)" if config.WEIGHT_SCHEME == 'EQUAL' else "冠军加权 (3:1:1:1)"
     print("=" * 50)
-    print("  ETF 量化交易策略 - 实盘运行")
+    print(f"  ETF 量化交易策略 - {weight_label}")
     print("=" * 50)
     print(f"  启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  账号: {config.ACCOUNT_ID[-6:]}")
+    print(f"  权重方案: {config.WEIGHT_SCHEME}")
     print(f"  调仓时间: {config.EXEC_TIME}")
+    print(f"  状态文件: {config.STATE_FILE}")
     print("=" * 50)
     print()
     
