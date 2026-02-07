@@ -51,9 +51,14 @@ class Config:
     ENABLE_META_GATE = True      # 开启 Meta-Gate 防御
     SCORING_METHOD = 'SMOOTH'    # 评分方法
     
+    # === 权重方案 ===
+    # CHAMPION = 3:1:1:1 (冠军加权), EQUAL = 1:1:1:1 (等权)
+    WEIGHT_SCHEME = os.environ.get('WEIGHT_SCHEME', 'CHAMPION')
+    VERSION_SUFFIX = os.environ.get('VERSION_SUFFIX', '')  # 用于区分不同版本的文件
+    
     # === 状态文件 ===
     MACRO_BENCHMARK = 'SZSE.159915'  # 创业板ETF作为宏观锚点
-    STATE_FILE = "rolling_state_main.json"
+    STATE_FILE = f"rolling_state_main{VERSION_SUFFIX}.json"
     
     # === 保护期与缓冲 ===
     PROTECTION_DAYS = int(os.environ.get('OPT_PROTECTION_DAYS', 0))
@@ -107,8 +112,8 @@ class Config:
             ch.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
             logger.addHandler(ch)
             
-            # 文件输出
-            log_file = os.path.join(cls.LOG_DIR, f"strategy_{datetime.now().strftime('%Y%m%d')}.log")
+            # 文件输出 (包含版本后缀以区分不同策略)
+            log_file = os.path.join(cls.LOG_DIR, f"strategy_{datetime.now().strftime('%Y%m%d')}{cls.VERSION_SUFFIX}.log")
             fh = logging.FileHandler(log_file, encoding='utf-8')
             fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
             logger.addHandler(fh)
