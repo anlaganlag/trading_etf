@@ -8,9 +8,11 @@ set SCRIPT_DIR=%~dp0
 cd /d "%SCRIPT_DIR%"
 
 echo ============================================
-echo   ETF 交易策略 - 守护进程模式
+echo   ETF 交易策略 - 冠军加权版 (3:1:1:1)
 echo ============================================
 echo   启动时间: %date% %time%
+echo   权重方案: CHAMPION
+echo   状态文件: rolling_state_main.json
 echo   工作目录: %SCRIPT_DIR%
 echo ============================================
 echo.
@@ -22,7 +24,7 @@ echo.
 :loop
 echo.
 echo [%date% %time%] ========================================
-echo [%date% %time%] 正在启动策略...
+echo [%date% %time%] 正在启动冠军加权版策略...
 echo.
 
 :: 运行 Python 脚本
