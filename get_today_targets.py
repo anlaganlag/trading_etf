@@ -67,10 +67,12 @@ def load_data_and_init(context):
     sym_str = ",".join(context.whitelist)
     
     try:
+        # Fetch both close and volume
         hd = history(symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt,
-                     fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
+                     fields='symbol,close,volume,eob', fill_missing='last', adjust=ADJUST_PREV, df=True)
         hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
         context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
+        context.volumes_df = hd.pivot(index='eob', columns='symbol', values='volume').ffill()
         
         # Load benchmark for regime text
         bm_data = history(symbol=config.MACRO_BENCHMARK, frequency='1d', start_time=start_dt, end_time=end_dt,

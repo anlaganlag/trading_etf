@@ -91,22 +91,55 @@ def _stop_heartbeat():
 
 def _load_gateway_data(context):
     """
-    预加载行情数据 (实盘必备)
+    预加载行情数据 (实盘/回测通用)
     """
     from gm.api import history
-    # 预加载 400 天数据以计算长周期均线/RSI
-    start_dt = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d %H:%M:%S')
-    end_dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    sym_str = ",".join(context.whitelist)
     
-    logger.info(f"⏳ Pre-loading market data for {len(context.whitelist)} symbols...")
+    # 确定数据加载的时间范围
+    if context.mode == MODE_LIVE:
+        # 实盘：加载过去 400 天到当前
+        start_dt = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d %H:%M:%S')
+        end_dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        # 回测：加载配置的整个回测区间 (加一点缓冲)
+        # 注意: config.START_DATE 是字符串 'YYYY-MM-DD HH:MM:SS'
+        # 我们需要往前推 400 天以确保指标计算有足够数据
+        s_dt = datetime.strptime(config.START_DATE, '%Y-%m-%d %H:%M:%S')
+        start_dt = (s_dt - timedelta(days=400)).strftime('%Y-%m-%d %H:%M:%S')
+        end_dt = config.END_DATE
     
-    hd = history(
-        symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt,
-        fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True
-    )
-    hd['eob'] = pd.to_datetime(hd['eob']).dt.tz_localize(None)
-    context.prices_df = hd.pivot(index='eob', columns='symbol', values='close').ffill()
+    sym_list = list(context.whitelist)
+    chunk_size = 50
+    all_dfs = []
+
+    logger.info(f"⏳ Pre-loading market data for {len(sym_list)} symbols in batches...")
+    logger.info(f"   Range: {start_dt} -> {end_dt}")
+
+    for i in range(0, len(sym_list), chunk_size):
+        chunk = sym_list[i : i + chunk_size]
+        sym_str = ",".join(chunk)
+        try:
+            hd = history(
+                symbol=sym_str, frequency='1d', start_time=start_dt, end_time=end_dt,
+                fields='symbol,close,eob', fill_missing='last', adjust=ADJUST_PREV, df=True
+            )
+            if not hd.empty:
+                all_dfs.append(hd)
+        except Exception as e:
+            logger.warning(f"⚠️ Batch load failed for chunk {i}: {e}")
+
+    if all_dfs:
+        full_hd = pd.concat(all_dfs)
+        full_hd['eob'] = pd.to_datetime(full_hd['eob']).dt.tz_localize(None)
+        # Drop duplicates just in case
+        full_hd = full_hd.drop_duplicates(subset=['eob', 'symbol'])
+        context.prices_df = full_hd.pivot(index='eob', columns='symbol', values='close').ffill()
+    else:
+        logger.error("❌ Failed to load ANY market data!")
+        context.prices_df = pd.DataFrame()
+    
+    # 补齐：如果某些批次失败，可能会有没有数据的列，但 pivot 会自动处理，只是全 NaN。
+    # 填充缺失值：对于停牌股票保持 NaN 或 ffill
     
     # 加载基准数据用于 Regime 计算
     bm_data = history(
@@ -122,13 +155,49 @@ def init(context):
     """
     实盘资源初始化
     """
-    # 1. 加载白名单
-    df_excel = pd.read_excel(config.WHITELIST_FILE)
-    df_excel.columns = df_excel.columns.str.strip()
-    df_excel = df_excel.rename(columns={'symbol':'etf_code', 'sec_name':'etf_name', 'name_cleaned':'theme'})
-    context.whitelist = set(df_excel['etf_code'])
-    context.theme_map = df_excel.set_index('etf_code')['theme'].to_dict()
-    context.name_map = df_excel.set_index('etf_code')['etf_name'].to_dict()
+    # 1. 加载白名单/成分股
+    if config.TARGET_MODE == 'ETF':
+        logger.info(f"🆕 Switching to ETF MODE: Loading from {config.WHITELIST_FILE}...")
+        try:
+            df_excel = pd.read_excel(config.WHITELIST_FILE)
+            df_excel.columns = df_excel.columns.str.strip()
+            # 兼容旧列名或新列名
+            sym_col = 'symbol' if 'symbol' in df_excel.columns else 'etf_code'
+            name_col = 'sec_name' if 'sec_name' in df_excel.columns else 'etf_name'
+            theme_col = 'theme' if 'theme' in df_excel.columns else 'name_cleaned'
+            
+            context.whitelist = set(df_excel[sym_col].tolist())
+            context.name_map = dict(zip(df_excel[sym_col], df_excel[name_col]))
+            context.theme_map = dict(zip(df_excel[sym_col], df_excel[theme_col]))
+            logger.info(f"✅ Loaded {len(context.whitelist)} ETFs from Excel.")
+        except Exception as e:
+            logger.error(f"❌ Failed to load ETF whitelist: {e}")
+            context.whitelist = set()
+    else:
+        logger.info(f"🆕 Switching to STOCK MODE: Loading constituents for {config.UNIVERSE_INDEX}...")
+        from gm.api import stk_get_index_constituents
+        try:
+            if config.UNIVERSE_INDEX == 'SHSE.000985':
+                component_indices = ['SHSE.000300', 'SHSE.000905', 'SHSE.000852', 'SZSE.399303']
+                all_symbols = set()
+                for idx in component_indices:
+                    try:
+                        df_part = stk_get_index_constituents(index=idx)
+                        if not df_part.empty:
+                            all_symbols.update(df_part['symbol'].tolist())
+                    except: pass
+                context.whitelist = all_symbols
+            else:
+                df_const = stk_get_index_constituents(index=config.UNIVERSE_INDEX)
+                context.whitelist = set(df_const['symbol'])
+            
+            context.name_map = {s: s for s in context.whitelist}
+            context.theme_map = {s: 'STOCK' for s in context.whitelist}
+            logger.info(f"✅ Loaded {len(context.whitelist)} stocks (STOCK MODE).")
+        except Exception as e:
+            logger.error(f"❌ Failed to load stock constituents: {e}")
+            context.whitelist = set()
+
     
     # 2. 组件组装
     context.rpm = RollingPortfolioManager()
@@ -138,15 +207,26 @@ def init(context):
     context.mailer = EmailNotifier()
     
     # 3. 初始参数
-    context.mode = MODE_LIVE
+    if not hasattr(context, 'mode'):
+        context.mode = MODE_LIVE
     context.account_id = config.ACCOUNT_ID
     context.risk_scaler = 1.0
     context.market_state = 'UNKNOWN'
+    context.br_history = []
+    
+    # Meta-Gate Thresholds
+    context.BR_CAUTION_IN = 0.6
+    context.BR_CAUTION_OUT = 0.4
+    context.BR_DANGER_IN = 0.8
+    context.BR_DANGER_OUT = 0.6
+    context.BR_PRE_DANGER = 0.7
     
     # 4. 数据网关
     _load_gateway_data(context)
     
     # 5. 回测/实盘参数逻辑初始化
+    from gm.api import schedule
+    schedule(schedule_func=algo, date_rule='1d', time_rule=config.EXEC_TIME)
 
     
     logger.info(f"🚀 Live Strategy Initialized. Account: {context.account_id}")

@@ -1,0 +1,25 @@
+{
+  "strategy_name": "推荐方案-中等激进",
+  "weights": {
+    "2": 0.3,
+    "5": 0.4,
+    "10": 0.2,
+    "20": 0.1
+  },
+  "hold_days": 5,
+  "top_n": 4,
+  "backtest_period": "2021-01-04 ~ 2026-02-06",
+  "performance": {
+    "total_return": 4.615885408387884,
+    "annual_return": 0.4232791720356033,
+    "sharpe": 0.7259177870706208,
+    "max_dd": -0.7557019598089213,
+    "calmar": 0.5601139001182809,
+    "limit_up_pct": 0.7156148867313916
+  },
+  "vs_benchmark": {
+    "benchmark": "创业板指 (SZSE.399006)",
+    "benchmark_annual_return": 0.010272002560919313,
+    "excess_return": 0.41300716947468397
+  }
+}

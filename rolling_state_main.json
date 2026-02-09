@@ -1,84 +1,84 @@
 {
-  "days_count": 0,
+  "days_count": 6859,
   "tranches": [
     {
       "id": 0,
-      "cash": 1000000.0,
+      "cash": NaN,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": NaN,
       "guard_triggered_today": false
     },
     {
       "id": 1,
-      "cash": 1000000.0,
+      "cash": NaN,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": NaN,
       "guard_triggered_today": false
     },
     {
       "id": 2,
-      "cash": 1000000.0,
+      "cash": 112984.42852000064,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": 112984.42852000064,
       "guard_triggered_today": false
     },
     {
       "id": 3,
-      "cash": 1000000.0,
+      "cash": NaN,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": NaN,
       "guard_triggered_today": false
     },
     {
       "id": 4,
-      "cash": 1000000.0,
+      "cash": 14562.722379999352,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": 14562.722379999352,
       "guard_triggered_today": false
     },
     {
       "id": 5,
-      "cash": 1000000.0,
+      "cash": 2790889.8698099996,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": 2790889.8698099996,
       "guard_triggered_today": false
     },
     {
       "id": 6,
-      "cash": 1000000.0,
+      "cash": 399173.72128999955,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": 399173.72128999955,
       "guard_triggered_today": false
     },
     {
       "id": 7,
-      "cash": 1000000.0,
+      "cash": 14159.547359999233,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": 14159.547359999233,
       "guard_triggered_today": false
     },
     {
       "id": 8,
-      "cash": 1000000.0,
+      "cash": NaN,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": NaN,
       "guard_triggered_today": false
     },
     {
       "id": 9,
-      "cash": 1000000.0,
+      "cash": 138172.20367000034,
       "holdings": {},
       "pos_records": {},
-      "total_value": 1000000.0,
+      "total_value": 138172.20367000034,
       "guard_triggered_today": false
     }
   ]

@@ -39,7 +39,9 @@ def main():
             backtest_end_time=args.end,
             backtest_adjust=ADJUST_PREV,
             backtest_initial_cash=args.cash,
-            backtest_commission_ratio=0.0001
+            backtest_commission_ratio=0.0001,
+            backtest_match_mode=1  # <--- 添加这一行，实现收盘价撮合
+
         )
     except Exception as e:
         logger.error(f"💥 Backtest crashed: {e}")

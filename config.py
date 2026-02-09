@@ -26,20 +26,25 @@ class Config:
     
     # === 账户配置 ===
     ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
-    STRATEGY_ID = '02966fb6-0309-11f1-b829-00ffda9d6e63'
+    STRATEGY_ID = '95a9be10-03e5-11f1-a006-00ffda9d6e63'
     # 用于确保回测一致性的 Token
     GM_TOKEN = os.environ.get('MY_QUANT_TGM_TOKEN')
     
     # === 时间窗口 ===
+    START_DATE = '2024-09-01 09:00:00'
     START_DATE = '2021-12-03 09:00:00'
-    END_DATE = '2026-01-23 16:00:00'
+    END_DATE = '2026-01-23 15:00:00'
     EXEC_TIME = os.environ.get('OPT_EXEC_TIME', '14:55:00')
     
     # === 策略核心参数 ===
     TOP_N = 4                    # 选前N只
-    REBALANCE_PERIOD_T = 10      # 每T个交易日调仓一次
-    MIN_SCORE = 20               # 最低评分阈值
+    REBALANCE_PERIOD_T = 3       # 每3个交易日调仓一次 (验证表明3日持有期超额收益显著高于20日)
+    MIN_SCORE = -50               # 最低评分阈值 (适配反转策略的负分逻辑)
     MAX_PER_THEME = 2            # 每主题最大持仓数
+    
+    # === 运行模式 ===
+    TARGET_MODE = 'ETF'        # ETF 轮动模式
+    # TARGET_MODE = 'STOCK'      # 股票全市场模式
     
     # === 止损止盈参数 ===
     STOP_LOSS = float(os.environ.get('OPT_STOP_LOSS', 0.20))
@@ -57,7 +62,9 @@ class Config:
     VERSION_SUFFIX = os.environ.get('VERSION_SUFFIX', '')  # 用于区分不同版本的文件
     
     # === 状态文件 ===
-    MACRO_BENCHMARK = 'SZSE.159915'  # 创业板ETF作为宏观锚点
+    MACRO_BENCHMARK = 'SHSE.000300'  # 沪深300作为宏观锚点 (股票模式)
+    # UNIVERSE_INDEX = 'SHSE.000906'   # 中证800 (800只) - 掘金API支持
+    UNIVERSE_INDEX = 'SHSE.000985'   # 中证全指 (全市场代表) - 掘金API不支持成分股查询
     STATE_FILE = f"rolling_state_main{VERSION_SUFFIX}.json"
     
     # === 保护期与缓冲 ===

@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "C:\Users\tanjh\.ydgm3\projects\aea75195-00dd-11f1-866a-00ffda9d6e63\calculate_realtime_top4.py", line 131, in <module>
+    calculate_realtime_top4()
+  File "C:\Users\tanjh\.ydgm3\projects\aea75195-00dd-11f1-866a-00ffda9d6e63\calculate_realtime_top4.py", line 56, in calculate_realtime_top4
+    hist_df = pd.concat(all_prices)
+  File "D:\DevTools\Python310\lib\site-packages\pandas\util\_decorators.py", line 331, in wrapper
+    return func(*args, **kwargs)
+  File "D:\DevTools\Python310\lib\site-packages\pandas\core\reshape\concat.py", line 368, in concat
+    op = _Concatenator(
+  File "D:\DevTools\Python310\lib\site-packages\pandas\core\reshape\concat.py", line 425, in __init__
+    raise ValueError("No objects to concatenate")
+ValueError: No objects to concatenate

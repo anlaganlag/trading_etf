@@ -1,0 +1,29 @@
+Optimization Report (Negative Weights Allowed)
+==============================================
+Weights (Day 1 to 20):
+Day 1: 0.0320
+Day 2: 0.0067
+Day 3: -0.0628
+Day 4: 0.0726
+Day 5: 0.0287
+Day 6: -0.0121
+Day 7: -0.0548
+Day 8: -0.0700
+Day 9: 0.0653
+Day 10: 0.0205
+Day 11: -0.0774
+Day 12: 0.0500
+Day 13: 0.0793
+Day 14: 0.0848
+Day 15: 0.0534
+Day 16: 0.0624
+Day 17: 0.0019
+Day 18: -0.0320
+Day 19: 0.0639
+Day 20: 0.0694
+
+Metrics:
+Win Rate: 0.5671
+Mean Portfolio 20d Return: 0.0546
+Mean Benchmark 20d Return: 0.0500
+Excess Return: 0.0046
