@@ -21,15 +21,15 @@ cd /d "%SCRIPT_DIR%"
 set WEIGHT_SCHEME=EQUAL
 set VERSION_SUFFIX=_equal
 
-:: === 账户配置 (请修改为你的等权版账户ID) ===
-:: 如果需要使用不同账户，请取消下面这行的注释并填入账户ID
-:: set GM_ACCOUNT_ID=你的等权版账户ID
+:: === 账户配置：由 .env 的 GM_ACCOUNT_ID_EQUAL 提供，config 根据 WEIGHT_SCHEME=EQUAL 自动选用 ===
+:: 无需在此 set GM_ACCOUNT_ID，config 会按 WEIGHT_SCHEME 从 .env 读取对应账户
 
 echo ============================================
 echo   ETF 交易策略 - 等权版本 (1:1:1:1)
 echo ============================================
 echo   启动时间: %date% %time%
 echo   权重方案: %WEIGHT_SCHEME%
+echo   账户: 从 .env GM_ACCOUNT_ID_EQUAL 自动选用
 echo   状态文件: rolling_state_main%VERSION_SUFFIX%.json
 echo   工作目录: %SCRIPT_DIR%
 echo ============================================
@@ -44,7 +44,7 @@ echo [%date% %time%] ========================================
 echo [%date% %time%] 正在启动等权版策略...
 echo.
 
-python main.py
+.\venv\Scripts\python.exe main.py
 
 if %errorlevel% equ 0 (
     echo.

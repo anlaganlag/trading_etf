@@ -10,12 +10,13 @@ import os
 import glob
 import threading
 from datetime import datetime, timedelta
-from gm.api import run, set_token, MODE_LIVE, ADJUST_PREV
+from gm.api import run, set_token, set_account_id, MODE_LIVE, ADJUST_PREV, subscribe, schedule
 from config import config, logger, validate_env
 from core.strategy import algo, on_bar, on_backtest_finished
 from core.portfolio import RollingPortfolioManager
 from core.risk import RiskController
 from core.notify import EnterpriseWeChat, EmailNotifier
+from core.account import get_account
 
 import pandas as pd
 
@@ -140,17 +141,58 @@ def init(context):
     # 3. 初始参数
     context.mode = MODE_LIVE
     context.account_id = config.ACCOUNT_ID
+    set_account_id(config.ACCOUNT_ID)  # 确保 GM C 层下单使用等权账户，避免 1020 无效 ACCOUNT_ID
     context.risk_scaler = 1.0
-    context.market_state = 'UNKNOWN'
+    context.market_state = 'SAFE'
+    context.br_history = []
+    context.BR_CAUTION_IN, context.BR_CAUTION_OUT = 0.40, 0.30
+    context.BR_DANGER_IN, context.BR_DANGER_OUT, context.BR_PRE_DANGER = 0.60, 0.50, 0.55
+    
+    # 3.5. 验证账户可访问性（提前检查，带默认账户 fallback）
+    try:
+        logger.info(f"🔍 Verifying account access: {context.account_id}")
+        test_acc = get_account(context)
+        if test_acc:
+            nav = test_acc.cash.nav if hasattr(test_acc, 'cash') and hasattr(test_acc.cash, 'nav') else 0.0
+            cash_available = test_acc.cash.available if hasattr(test_acc, 'cash') and hasattr(test_acc.cash, 'available') else 0.0
+            logger.info(f"✅ Account verified: {context.account_id[-8:]} | NAV: {nav:,.2f} | Available: {cash_available:,.2f}")
+        else:
+            logger.error(f"❌ Account verification failed: {context.account_id}")
+            logger.error("   Account object is None. Possible reasons:")
+            logger.error("   1. Account ID does not exist in GM platform")
+            logger.error("   2. Token does not have permission to access this account")
+            logger.error("   3. Account is disabled or deleted")
+            logger.warning("   Strategy will continue but may fail during initialization")
+    except Exception as e:
+        logger.error(f"❌ Account verification exception: {e}")
+        logger.error(f"   Account ID: {context.account_id}")
+        import traceback
+        logger.error(f"   Traceback: {traceback.format_exc()}")
+        logger.warning("   Strategy will continue but may fail during initialization")
     
     # 4. 数据网关
     _load_gateway_data(context)
     
-    # 5. 回测/实盘参数逻辑初始化
-
+    # 5. 订阅行情和注册定时任务
+    subscribe(
+        symbols=list(context.whitelist),
+        frequency='60s'
+    )
+    
+    # 6. 注册每日执行时间
+    if config.EXEC_EVERY_10MIN:
+        for t in ('14:00:00', '14:10:00', '14:20:00', '14:30:00', '14:40:00', '14:50:00', '14:55:00'):
+            schedule(schedule_func=algo, date_rule='1d', time_rule=t)
+        logger.info("⏰ Scheduled execution every 10 min: 14:00–14:55 (stress test)")
+    else:
+        schedule(schedule_func=algo, date_rule='1d', time_rule=config.EXEC_TIME)
+        logger.info(f"⏰ Scheduled execution at {config.EXEC_TIME}")
+    
+    # 7. 回测/实盘参数逻辑初始化
     
     logger.info(f"🚀 Live Strategy Initialized. Account: {context.account_id}")
-    context.wechat.send_text(f"🚀 策略启动成功\n账号: {context.account_id[-6:]}\n模式: LIVE")
+    exec_desc = "14:00起每10分钟" if config.EXEC_EVERY_10MIN else config.EXEC_TIME
+    context.wechat.send_text(f"🚀 策略启动成功\n账号: {context.account_id[-6:]}\n模式: LIVE\n执行时间: {exec_desc}")
 
 def run_strategy_safe():
     """

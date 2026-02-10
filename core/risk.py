@@ -5,6 +5,7 @@
 """
 from gm.api import MODE_LIVE
 from config import config, logger
+from .account import get_account
 
 
 class RiskController:
@@ -20,10 +21,17 @@ class RiskController:
         """每日开盘初始化"""
         current_day = context.now.date()
         if self.last_day != current_day:
-            acc = (context.account(account_id=context.account_id) 
-                   if context.mode == MODE_LIVE else context.account())
-            if acc:
-                self.initial_nav_today = acc.cash.nav
+            try:
+                acc = get_account(context)
+                if acc and hasattr(acc, 'cash') and hasattr(acc.cash, 'nav'):
+                    self.initial_nav_today = acc.cash.nav
+                else:
+                    logger.warning(f"⚠️ [RISK] Failed to get account NAV, using 0.0")
+                    self.initial_nav_today = 0.0
+            except Exception as e:
+                logger.error(f"❌ [RISK] Exception getting account: {e}")
+                self.initial_nav_today = 0.0
+            
             self.reject_count = 0
             self.active = True
             self.last_day = current_day
@@ -31,9 +39,12 @@ class RiskController:
 
     def check_daily_loss(self, context):
         """检查单日亏损是否触达熔断线"""
-        acc = (context.account(account_id=context.account_id) 
-               if context.mode == MODE_LIVE else context.account())
-        if not acc or self.initial_nav_today <= 0:
+        try:
+            acc = get_account(context)
+            if not acc or self.initial_nav_today <= 0:
+                return True
+        except Exception as e:
+            logger.warning(f"⚠️ [RISK] Exception getting account in check_daily_loss: {e}")
             return True
 
         current_nav = acc.cash.nav

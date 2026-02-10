@@ -25,7 +25,16 @@ class Config:
     WHITELIST_FILE = os.path.join(BASE_DIR, "ETF合并筛选结果.xlsx")
     
     # === 账户配置 ===
-    ACCOUNT_ID = os.environ.get('GM_ACCOUNT_ID', '658419cf-ffe1-11f0-a908-00163e022aa6')
+    # 自适应双账户：未显式设置 GM_ACCOUNT_ID 时，按权重方案选账户
+    # EQUAL → GM_ACCOUNT_ID_EQUAL，否则 → GM_ACCOUNT_ID_NON_EQUAL
+    _weight = os.environ.get('WEIGHT_SCHEME', 'CHAMPION')
+    _account_equal = os.environ.get('GM_ACCOUNT_ID_EQUAL')
+    _account_non_equal = os.environ.get('GM_ACCOUNT_ID_NON_EQUAL')
+    ACCOUNT_ID = (
+        os.environ.get('GM_ACCOUNT_ID')
+        or (_account_equal if _weight == 'EQUAL' else _account_non_equal)
+        or '658419cf-ffe1-11f0-a908-00163e022aa6'
+    )
     STRATEGY_ID = '02966fb6-0309-11f1-b829-00ffda9d6e63'
     # 用于确保回测一致性的 Token
     GM_TOKEN = os.environ.get('MY_QUANT_TGM_TOKEN')
@@ -34,6 +43,8 @@ class Config:
     START_DATE = '2021-12-03 09:00:00'
     END_DATE = '2026-01-23 16:00:00'
     EXEC_TIME = os.environ.get('OPT_EXEC_TIME', '14:55:00')
+    # 压测/验证：14:00 起每 10 分钟执行一次（设 OPT_EXEC_EVERY_10MIN=1 开启）
+    EXEC_EVERY_10MIN = os.environ.get('OPT_EXEC_EVERY_10MIN', '').strip().lower() in ('1', 'true', 'yes')
     
     # === 策略核心参数 ===
     TOP_N = 4                    # 选前N只

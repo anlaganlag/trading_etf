@@ -12,6 +12,7 @@ from gm.api import (
     PositionEffect_Close, PositionSide_Long
 )
 from config import config, logger
+from .account import get_account
 from .signal import get_market_regime, get_ranking
 
 
@@ -43,16 +44,86 @@ def algo(context):
             ]).sort_index()
 
     context.rpm.days_count += 1
-    if not context.rpm.initialized:
+    
+    # 如果已从状态文件加载，直接使用
+    if context.rpm.initialized:
+        logger.debug(f"✅ Portfolio Manager already initialized from state file")
+    else:
         logger.info("🆕 Initializing Portfolio Manager...")
-        acc = (context.account(account_id=context.account_id) 
-               if context.mode == MODE_LIVE else context.account())
-        if acc:
-            context.rpm.initialize_tranches(acc.cash.nav)
-            logger.info(f"💰 Initialized {config.REBALANCE_PERIOD_T} tranches with NAV: {acc.cash.nav:,.2f}")
-        else:
-            logger.error("❌ Failed to get account info for initialization")
-            return
+        try:
+            if context.mode == MODE_LIVE:
+                logger.info(f"📋 Attempting to get account: {context.account_id}")
+                # 尝试多种方式获取账户
+                acc = None
+                try:
+                    # 方式1: 使用 account_id 参数
+                    acc = context.account(account_id=context.account_id)
+                    logger.info(f"   Method 1 (with account_id): {'✅ Success' if acc else '❌ Failed'}")
+                except Exception as e1:
+                    logger.warning(f"   Method 1 exception: {e1}")
+                
+                if not acc:
+                    try:
+                        # 方式2: 不使用参数（可能返回默认账户）
+                        acc = context.account()
+                        logger.info(f"   Method 2 (no params): {'✅ Success' if acc else '❌ Failed'}")
+                        if acc and hasattr(acc, 'account_id'):
+                            logger.info(f"   Retrieved account ID: {acc.account_id}")
+                    except Exception as e2:
+                        logger.warning(f"   Method 2 exception: {e2}")
+            else:
+                acc = context.account()
+            
+            if acc:
+                nav = acc.cash.nav if hasattr(acc, 'cash') and hasattr(acc.cash, 'nav') else 0.0
+                if nav > 0:
+                    context.rpm.initialize_tranches(nav)
+                    logger.info(f"💰 Initialized {config.REBALANCE_PERIOD_T} tranches with NAV: {nav:,.2f}")
+                else:
+                    logger.warning(f"⚠️ Account NAV is 0: {nav}")
+                    # 尝试从状态文件恢复
+                    if hasattr(context.rpm, 'tranches') and len(context.rpm.tranches) > 0:
+                        total_val = sum(t.total_value for t in context.rpm.tranches)
+                        if total_val > 0:
+                            logger.info(f"📊 Using state file value: {total_val:,.2f}")
+                            context.rpm.initialized = True
+                        else:
+                            logger.error("❌ Cannot initialize: Account NAV is 0 and no valid state")
+                            return
+                    else:
+                        # 如果状态文件也没有，尝试重新加载
+                        logger.warning("⚠️ Attempting to reload state file...")
+                        if context.rpm.load_state():
+                            logger.info("✅ Successfully loaded from state file")
+                        else:
+                            logger.error("❌ Cannot initialize: Account NAV is 0 and state file unavailable")
+                            logger.error("   Please check account ID and ensure account has funds")
+                            return
+            else:
+                logger.error(f"❌ Failed to get account info. Account ID: {getattr(context, 'account_id', 'N/A')}")
+                logger.error("   Possible reasons:")
+                logger.error("   1. Invalid account ID")
+                logger.error("   2. No permission to access this account")
+                logger.error("   3. Account not found in GM platform")
+                # 尝试从状态文件恢复
+                logger.warning("⚠️ Attempting to use state file as fallback...")
+                if context.rpm.load_state():
+                    logger.info("✅ Successfully loaded from state file")
+                else:
+                    logger.error("❌ Cannot proceed: Account unavailable and no state file")
+                    return
+        except Exception as e:
+            logger.error(f"❌ Exception while getting account: {e}")
+            logger.error(f"   Account ID: {getattr(context, 'account_id', 'N/A')}")
+            import traceback
+            logger.error(f"   Traceback: {traceback.format_exc()}")
+            # 尝试从状态文件恢复
+            logger.warning("⚠️ Attempting to use state file as fallback...")
+            if context.rpm.load_state():
+                logger.info("✅ Successfully loaded from state file")
+            else:
+                logger.error("❌ Cannot proceed: Exception and no state file")
+                return
     # === 🛡️ 安全检查：确保价格数据切片正确 ===
     prices_slice = context.prices_df[context.prices_df.index <= current_dt]
 
@@ -120,8 +191,13 @@ def algo(context):
 
     # 3. 最终同步 (Order Execution)
     tgt_qty = context.rpm.total_holdings
-    acc = (context.account(account_id=context.account_id) 
-           if context.mode == MODE_LIVE else context.account())
+    
+    # 获取账户信息（带 fallback：指定 account_id 不可用时尝试默认账户）
+    try:
+        acc = get_account(context)
+    except Exception as e:
+        logger.error(f"❌ Failed to get account in sync_orders: {e}")
+        return
     
     if not acc:
         logger.error("❌ Failed to sync: Account object is None")
@@ -139,7 +215,8 @@ def algo(context):
                 volume=vol_to_sell,
                 side=OrderSide_Sell,
                 order_type=OrderType_Market,
-                position_effect=PositionEffect_Close
+                position_effect=PositionEffect_Close,
+                account=context.account_id if context.mode == MODE_LIVE else ""
             )
             order_summary.append(f"SELL {pos.symbol} {vol_to_sell}股")
 
@@ -150,7 +227,8 @@ def algo(context):
                 symbol=sym,
                 volume=int(qty),
                 position_side=PositionSide_Long,
-                order_type=OrderType_Market
+                order_type=OrderType_Market,
+                account=context.account_id if context.mode == MODE_LIVE else ""
             )
             # 记录预估买入（注意此处是目标量）
             current_pos = next((p.amount for p in acc.positions() if p.symbol == sym), 0)
