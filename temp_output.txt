@@ -1,0 +1,24 @@
+Loading Data...
+Data Loaded: 1284 days (Up to 2026-02-09 00:00:00)
+Forcing Initialization with 10,000,000 Base.
+
+--- Theoretical Prediction based on logic.py ---
+Simulated Day: 1
+Active Tranche: 0
+
+Traffic Lights:
+  > Market State: SAFE
+  > Trend Scale:  100.00%
+  > Risk Scale:   100.00%
+  > Final Scale:  100.00%
+
+Active Tranche Assets: ¥1,000,000.00
+Allocatable (Scaled):  ¥990,000.00
+
+--- 💰 Target Execution Plan ---
+Ticker       Name           Weight   Target Value    Current Val     Action    
+-------------------------------------------------------------------------------------
+SHSE.517520  永赢中证沪深港黄金产业股   3        ¥495,000.00      ¥0.00      BUY (+495,000)
+SHSE.515790  华泰柏瑞中证光伏产业ET   1        ¥165,000.00      ¥0.00      BUY (+165,000)
+SZSE.159326  华夏中证电网设备主题ET   1        ¥165,000.00      ¥0.00      BUY (+165,000)
+SZSE.159697  鹏华国证石油天然气ETF   1        ¥165,000.00      ¥0.00      BUY (+165,000)
