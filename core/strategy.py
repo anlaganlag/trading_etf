@@ -10,8 +10,8 @@ import pandas as pd
 from gm.api import (
     MODE_BACKTEST, MODE_LIVE, current,
     order_volume, order_target_volume, order_target_percent,
-    OrderSide_Sell, OrderType_Market,
-    PositionEffect_Close, PositionSide_Long
+    OrderSide_Buy, OrderSide_Sell, OrderType_Market,
+    PositionEffect_Open, PositionEffect_Close, PositionSide_Long
 )
 
 # 订单状态常量（GM API可能不提供，使用整数值）
@@ -351,36 +351,57 @@ def algo(context):
     submitted_orders = []  # 记录提交的订单（用于验证）
 
     # A. 卖出多余持仓
+    # A. 卖出多余持仓 (强制整百，除非清仓)
     for pos in acc.positions():
-        diff = pos.amount - tgt_qty.get(pos.symbol, 0)
+        target = tgt_qty.get(pos.symbol, 0)
+        diff = pos.amount - target
         if diff > 0 and pos.available > 0:
-            vol_to_sell = int(min(diff, pos.available))
-            order = order_volume(
-                symbol=pos.symbol,
-                volume=vol_to_sell,
-                side=OrderSide_Sell,
-                order_type=OrderType_Market,
-                position_effect=PositionEffect_Close,
-                account=context.account_id if context.mode == MODE_LIVE else ""
-            )
-            order_summary.append(f"SELL {pos.symbol} {vol_to_sell}股")
-            submitted_orders.append({'order': order, 'symbol': pos.symbol, 'side': 'SELL'})
+            if target <= 0:
+                # 目标清仓：如果可用资产涵盖了全部持仓，则允许一次性卖出碎股
+                if pos.available >= pos.amount:
+                    vol_to_sell = int(pos.amount)
+                else:
+                    # 否则只能卖出整百部分
+                    vol_to_sell = (int(pos.available) // 100) * 100
+            else:
+                # 目标减仓：强制整百卖出
+                vol_to_sell = (int(min(diff, pos.available)) // 100) * 100
+            
+            if vol_to_sell > 0:
+                order = order_volume(
+                    symbol=pos.symbol,
+                    volume=vol_to_sell,
+                    side=OrderSide_Sell,
+                    order_type=OrderType_Market,
+                    position_effect=PositionEffect_Close,
+                    account=context.account_id if context.mode == MODE_LIVE else ""
+                )
+                order_summary.append(f"SELL {pos.symbol} {vol_to_sell}股")
+                submitted_orders.append({'order': order, 'symbol': pos.symbol, 'side': 'SELL'})
 
-    # B. 买入目标仓位
-    for sym, qty in tgt_qty.items():
-        if qty > 0:
-            order = order_target_volume(
-                symbol=sym,
-                volume=int(qty),
-                position_side=PositionSide_Long,
-                order_type=OrderType_Market,
-                account=context.account_id if context.mode == MODE_LIVE else ""
-            )
-            # 记录预估买入（注意此处是目标量）
-            current_pos = next((p.amount for p in acc.positions() if p.symbol == sym), 0)
-            if int(qty) > current_pos:
-                order_summary.append(f"BUY  {sym} -> {int(qty)}股")
-                submitted_orders.append({'order': order, 'symbol': sym, 'side': 'BUY'})
+    # B. 买入目标仓位 (强制整百)
+    for sym, target_qty in tgt_qty.items():
+        if target_qty > 0:
+            # 获取当前持仓
+            pos = next((p for p in acc.positions() if p.symbol == sym), None)
+            current_amount = pos.amount if pos else 0
+            
+            if target_qty > current_amount:
+                # 计算买入缺口并下取整到100
+                diff = target_qty - current_amount
+                vol_to_buy = (int(diff) // 100) * 100
+                
+                if vol_to_buy > 0:
+                    order = order_volume(
+                        symbol=sym,
+                        volume=vol_to_buy,
+                        side=OrderSide_Buy,
+                        order_type=OrderType_Market,
+                        position_effect=PositionEffect_Open,
+                        account=context.account_id if context.mode == MODE_LIVE else ""
+                    )
+                    order_summary.append(f"BUY  {sym} {vol_to_buy}股")
+                    submitted_orders.append({'order': order, 'symbol': sym, 'side': 'BUY'})
 
     # === 订单成交验证（仅实盘） ===
     if context.mode == MODE_LIVE and submitted_orders:

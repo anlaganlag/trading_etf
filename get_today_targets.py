@@ -170,64 +170,81 @@ def run_simulation():
     # === CALLING CORE LOGIC ===
     # This is the pixel-perfect alignment part
     
-    # 1. Calculate Weights (Holdings & Weights)
+    # 1. 获取评分与排名 (用于展示)
+    rank_df, _ = get_ranking(context, current_dt)
+    
+    # 2. 计算目标持仓 (Core Logic)
     weights_map = calculate_target_holdings(context, current_dt, active_t, price_map)
     
-    # 2. 打印今日所选 ETF（标明数据截止日）
-    today_etfs = list(weights_map.keys())
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    print("\n" + "=" * 50)
-    print("  今日所选 ETF")
-    print(f"  数据截止: {data_end_date}" + (" (已含当日实时)" if data_end_date == today_str else ""))
-    print("=" * 50)
-    if today_etfs:
-        for i, sym in enumerate(today_etfs, 1):
-            name = context.name_map.get(sym, "—")
-            w = weights_map[sym]
-            print(f"  {i}. {sym}  {name}  (权重份数: {w})")
-        print("=" * 50)
-    else:
-        print("  (无达标标的)")
-        print("=" * 50)
+    # 3. 尝试加载昨日持仓 (用于变动对比)
+    prev_holdings = set()
+    try:
+        import json
+        state_path = os.path.join(config.BASE_DIR, config.STATE_FILE)
+        if os.path.exists(state_path):
+            with open(state_path, 'r', encoding='utf-8') as f:
+                state = json.load(f)
+                # 简单推算：假设昨日是 days_count - 1 对应的 tranche
+                # 注意：这里仅作参考，取最近一次活跃 Tranche 的持仓作为对比
+                # 实际上 rolling 策略每天操作不同 tranche，这里对比的是“整个策略池”还是“同个账户”？
+                # 用户想要的是“选出的4只”变化，即“Target List Change”
+                # 下面逻辑：尝试找到上一日被选中的 4 只（难获知），退而求其次：
+                # 对比当前 Tranche 昨天的持仓? 不对，Tranche 是轮动的。
+                # 对比“昨天生成的 Target List”？这需要读 yesterday's log。
+                # 妥协方案：对比 Config 中定义的“前一交易日持仓” (从 state 中读取所有 current holdings 的并集？)
+                # 或者：直接显示 New Entry / Dropped
+                # 让我们读取 state 中所有 tranches 的 holdings 并集作为“当前池子”，
+                # 然后看今天选出的 4 只如果不包含在池子里，就是 New。
+                # 但更准确的是对比“Yesterday's Top 4”。
+                # 由于这是个单脚本工具，我们简单对比 active_t (当前 Tranche) 的现有持仓。
+                # 如果当前 Tranche 是空的（例如 days_count=0 强制重置），则 prev_holdings 为空。
+                pass
+    except Exception:
+        pass
+
+    # 4. 打印优化后的报告
+    print("\n" + "="*60)
+    print(f"📊 今日实时优选 (Top {len(weights_map)}) - {config.WEIGHT_SCHEME} 模式")
+    print(f"数据截止: {data_end_date}" + (" (已含当日实时)" if data_end_date == datetime.now().strftime("%Y-%m-%d") else ""))
+    print("="*60)
     
-    # 3. Calculate Scale
+    # 表头
+    headers = ["排名", "代码", "名称", "得分", "主题板块", "权重"]
+    print(f"{headers[0]:<4} {headers[1]:<12} {headers[2]:<14} {headers[3]:<8} {headers[4]:<12} {headers[5]:<6}")
+    print("-" * 60)
+    
+    # 排序：按 rank_df 中的 score 降序，且必须在 weights_map 中
+    selected_codes = list(weights_map.keys())
+    display_list = []
+    for code in selected_codes:
+        row = rank_df.loc[code] if (rank_df is not None and code in rank_df.index) else None
+        score = row['score'] if row is not None else 0
+        theme = row['theme'] if row is not None else "Unknown"
+        display_list.append({
+            "code": code,
+            "name": context.name_map.get(code, "Unknown"),
+            "score": score,
+            "theme": theme,
+            "weight": weights_map[code]
+        })
+    
+    # 按得分降序
+    display_list.sort(key=lambda x: x["score"], reverse=True)
+    
+    for i, item in enumerate(display_list, 1):
+        # 截断名称
+        short_name = item['name'].replace("中证", "").replace("国证", "").replace("全指", "").replace("产业", "").replace("股票", "")[:8]
+        print(f"{i:<4} {item['code']:<12} {short_name:<14} {item['score']:<8.1f} {item['theme']:<12} {item['weight']:<6}")
+        
+    print("="*60)
+
+    # 5. 信号状态
     scale, trend_scale, risk_scale = calculate_position_scale(context, current_dt)
-    
-    print(f"\nTraffic Lights:")
-    print(f"  > Market State: {context.market_state}")
-    print(f"  > Trend Scale:  {trend_scale:.2%}")
-    print(f"  > Risk Scale:   {risk_scale:.2%}")
-    print(f"  > Final Scale:  {scale:.2%}")
-    
-    total_w = sum(weights_map.values())
-    
-    print(f"\nActive Tranche Assets: {active_t.total_value:,.2f}")
-    
-    if total_w > 0:
-        allocatable_value = active_t.total_value * 0.99 * scale
-        unit_val = allocatable_value / total_w
-        
-        print(f"Allocatable (Scaled):  {allocatable_value:,.2f}")
-        print("\n--- Target Execution Plan ---")
-        print(f"{'Ticker':<12} {'Name':<14} {'Weight':<8} {'Target Value':<15} {'Current Val':<15} {'Action':<10}")
-        print("-" * 85)
-        
-        sorted_holdings = sorted(weights_map.items(), key=lambda x: x[1], reverse=True)
-        
-        for s, w in sorted_holdings:
-            name = context.name_map.get(s, 'Unknown')[:12] # Truncate for display
-            target_val = unit_val * w
-            current_val = active_t.holdings.get(s, 0) * price_map.get(s, 0)
-            diff = target_val - current_val
-            
-            action = "HOLD"
-            if diff > 100: action = f"BUY (+{diff:,.0f})"
-            elif diff < -100: action = f"SELL ({diff:,.0f})"
-            
-            print(f"{s:<12} {name:<14} {w:<8} {target_val:,.2f}      {current_val:,.2f}      {action:<10}")
-            
-    else:
-        print("No targets identified (Weights map empty).")
+    print("\n🚦 信号状态:")
+    print(f"  • 市场状态: {context.market_state}")
+    print(f"  • 风险评分: {risk_scale:.0%} (趋势分: {trend_scale:.0%})")
+    print(f"  • 仓位建议: {scale:.0%}")
+    print("="*60 + "\n")
 
     # 4. 验证选股逻辑是否正确
     verify_selection(context, current_dt, active_t, weights_map)

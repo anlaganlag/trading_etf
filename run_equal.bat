@@ -44,7 +44,7 @@ echo [%date% %time%] ========================================
 echo [%date% %time%] 正在启动等权版策略...
 echo.
 
-.\venv\Scripts\python.exe main.py
+python main.py
 
 if %errorlevel% equ 0 (
     echo.

@@ -25,16 +25,22 @@ class Config:
     WHITELIST_FILE = os.path.join(BASE_DIR, "ETF合并筛选结果.xlsx")
     
     # === 账户配置 ===
-    # 自适应双账户：未显式设置 GM_ACCOUNT_ID 时，按权重方案选账户
-    # EQUAL → GM_ACCOUNT_ID_EQUAL，否则 → GM_ACCOUNT_ID_NON_EQUAL
-    _weight = os.environ.get('WEIGHT_SCHEME', 'CHAMPION')
+    # 自适应双账户：当显式指定 WEIGHT_SCHEME 时按权重方案选账户
+    # EQUAL → GM_ACCOUNT_ID_EQUAL，NON_EQUAL → GM_ACCOUNT_ID_NON_EQUAL
+    # 只有未指定 WEIGHT_SCHEME 时才 fallback 到 GM_ACCOUNT_ID
+    _weight = os.environ.get('WEIGHT_SCHEME', '')
     _account_equal = os.environ.get('GM_ACCOUNT_ID_EQUAL')
     _account_non_equal = os.environ.get('GM_ACCOUNT_ID_NON_EQUAL')
-    ACCOUNT_ID = (
-        os.environ.get('GM_ACCOUNT_ID')
-        or (_account_equal if _weight == 'EQUAL' else _account_non_equal)
-        or '658419cf-ffe1-11f0-a908-00163e022aa6'
-    )
+    if _weight == 'EQUAL' and _account_equal:
+        ACCOUNT_ID = _account_equal
+    elif _weight and _weight != 'EQUAL' and _account_non_equal:
+        ACCOUNT_ID = _account_non_equal
+    else:
+        ACCOUNT_ID = (
+            os.environ.get('GM_ACCOUNT_ID')
+            or _account_non_equal
+            or '658419cf-ffe1-11f0-a908-00163e022aa6'
+        )
     STRATEGY_ID = '02966fb6-0309-11f1-b829-00ffda9d6e63'
     # 用于确保回测一致性的 Token
     GM_TOKEN = os.environ.get('MY_QUANT_TGM_TOKEN')

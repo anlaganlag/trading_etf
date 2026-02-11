@@ -72,9 +72,13 @@ def _cleanup_old_logs():
         
         for log_file in glob.glob(pattern):
             try:
-                # 从文件名提取日期 (strategy_20260207.log)
+                # 从文件名提取日期 (strategy_20260207.log 或 strategy_20260207_equal.log)
                 basename = os.path.basename(log_file)
-                date_str = basename.replace("strategy_", "").replace(".log", "")
+                import re
+                m = re.search(r'strategy_(\d{8})', basename)
+                if not m:
+                    continue
+                date_str = m.group(1)
                 file_date = datetime.strptime(date_str, "%Y%m%d")
                 
                 if file_date < cutoff_date:
