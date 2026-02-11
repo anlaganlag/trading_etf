@@ -4,11 +4,14 @@
 2. 守护进程心跳 (Heartbeat Monitoring)
 3. 异常捕获与微信报警
 4. 日志自动清理
+5. 优雅退出机制 (Graceful Shutdown)
 """
 import time
 import os
 import glob
 import threading
+import signal
+import sys
 from datetime import datetime, timedelta
 from gm.api import run, set_token, set_account_id, MODE_LIVE, ADJUST_PREV, subscribe, schedule
 from config import config, logger, validate_env
@@ -26,6 +29,12 @@ LOG_RETENTION_DAYS = 7        # 日志保留天数
 
 # 全局心跳线程控制
 _heartbeat_stop_event = threading.Event()
+
+# === 优雅退出机制 ===
+# 全局状态管理对象（用于信号处理器）
+_global_rpm = None
+_global_wechat = None
+_shutdown_requested = False
 
 def _heartbeat_loop():
     """
@@ -90,6 +99,55 @@ def _stop_heartbeat():
     _heartbeat_stop_event.set()
     logger.info("💓 Heartbeat monitor stopped")
 
+def _graceful_shutdown(signum, frame):
+    """
+    优雅退出信号处理器
+    捕获 Ctrl+C (SIGINT) 和 kill (SIGTERM) 信号
+    """
+    global _shutdown_requested
+
+    if _shutdown_requested:
+        logger.warning("⚠️ 已收到退出信号，强制退出...")
+        sys.exit(1)
+
+    _shutdown_requested = True
+    signal_name = signal.Signals(signum).name
+    logger.warning(f"⚠️ 收到信号 {signal_name} ({signum})，正在安全退出...")
+
+    try:
+        # 1. 停止心跳线程
+        _stop_heartbeat()
+
+        # 2. 保存状态（如果可用）
+        if _global_rpm and _global_rpm.initialized:
+            try:
+                logger.info("📝 正在保存状态...")
+                _global_rpm.save_state()
+                logger.info("✅ 状态已保存")
+            except Exception as save_err:
+                logger.error(f"❌ 状态保存失败: {save_err}")
+                logger.warning("⚠️ 退出时状态未保存，重启后将从上次成功保存的状态恢复")
+
+        # 3. 发送通知（如果可用）
+        if _global_wechat:
+            try:
+                _global_wechat.send_text(
+                    f"⚠️ 策略被手动中断\n"
+                    f"信号: {signal_name}\n"
+                    f"时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                )
+            except Exception as e:
+                logger.warning(f"⚠️ 微信通知失败: {e}")
+
+        logger.info("✅ 安全退出完成")
+
+    except Exception as e:
+        logger.error(f"❌ 退出时发生错误: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+    finally:
+        sys.exit(0)
+
 def _load_gateway_data(context):
     """
     预加载行情数据 (实盘必备)
@@ -133,10 +191,15 @@ def init(context):
     
     # 2. 组件组装
     context.rpm = RollingPortfolioManager()
-    context.rpm.load_state() 
+    context.rpm.load_state()
     context.risk_controller = RiskController()
     context.wechat = EnterpriseWeChat()
     context.mailer = EmailNotifier()
+
+    # 2.5. 保存全局引用（用于信号处理器）
+    global _global_rpm, _global_wechat
+    _global_rpm = context.rpm
+    _global_wechat = context.wechat
     
     # 3. 初始参数
     context.mode = MODE_LIVE
@@ -200,9 +263,15 @@ def run_strategy_safe():
     - 自动重连
     - 心跳监控
     - 日志清理
+    - 优雅退出
     """
     if not validate_env():
         return
+
+    # 注册信号处理器（优雅退出机制）
+    signal.signal(signal.SIGINT, _graceful_shutdown)   # Ctrl+C
+    signal.signal(signal.SIGTERM, _graceful_shutdown)  # kill 命令
+    logger.info("✅ 信号处理器已注册 (SIGINT, SIGTERM)")
 
     set_token(config.GM_TOKEN)
     

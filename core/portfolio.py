@@ -54,20 +54,42 @@ class Tranche:
         return t
 
     def update_value(self, price_map):
-        """更新份额净值"""
+        """
+        更新份额净值
+        容错处理：跳过价格缺失或无效的标的
+        """
+        import pandas as pd
         val = self.cash
         for sym, shares in self.holdings.items():
             if sym in price_map:
                 price = price_map[sym]
-                val += shares * price
+                # 检查价格有效性
+                if pd.notna(price) and price > 0:
+                    val += shares * price
+                    if sym in self.pos_records:
+                        self.pos_records[sym]['high_price'] = max(
+                            self.pos_records[sym]['high_price'], price
+                        )
+                else:
+                    # 价格无效，使用入场价格作为估值（保守估计）
+                    if sym in self.pos_records:
+                        entry_price = self.pos_records[sym].get('entry_price', 0)
+                        if entry_price > 0:
+                            val += shares * entry_price
+            else:
+                # 价格缺失，使用入场价格
                 if sym in self.pos_records:
-                    self.pos_records[sym]['high_price'] = max(
-                        self.pos_records[sym]['high_price'], price
-                    )
+                    entry_price = self.pos_records[sym].get('entry_price', 0)
+                    if entry_price > 0:
+                        val += shares * entry_price
         self.total_value = val
 
     def check_guard(self, price_map, current_dt=None):
-        """检查止损/止盈条件，支持保护期和动态止损"""
+        """
+        检查止损/止盈条件，支持保护期和动态止损
+        容错处理：价格缺失时跳过止损检查（避免误触发）
+        """
+        import pandas as pd
         to_sell = []
         for sym, rec in self.pos_records.items():
             if sym not in self.holdings:
@@ -80,8 +102,12 @@ class Tranche:
                 if days_held <= config.PROTECTION_DAYS:
                     continue
 
+            # 获取当前价格，严格验证有效性
             curr_p = price_map.get(sym, 0)
-            if curr_p <= 0:
+            if not curr_p or curr_p <= 0 or pd.isna(curr_p):
+                # 价格缺失或无效，跳过止损检查
+                from config import logger
+                logger.warning(f"⚠️ {sym} 价格缺失({curr_p})，跳过止损检查")
                 continue
             entry, high = rec['entry_price'], rec['high_price']
 
@@ -182,9 +208,15 @@ class RollingPortfolioManager:
         }
 
     def save_state(self):
-        """保存状态 - 原子操作"""
+        """
+        保存状态 - 原子操作
+
+        异常处理：
+        - 保存失败时清理临时文件
+        - 重新抛出异常让调用方感知
+        """
+        temp_path = self.state_path + '.tmp'
         try:
-            temp_path = self.state_path + '.tmp'
             with open(temp_path, 'w', encoding='utf-8') as f:
                 json.dump({
                     "days_count": self.days_count,
@@ -193,13 +225,25 @@ class RollingPortfolioManager:
                 f.flush()
                 # 显式刷盘（在 Windows 上确保安全）
                 os.fsync(f.fileno())
-            
+
             # 使用 os.replace 实现原子替换 (跨平台友好)
             os.replace(temp_path, self.state_path)
             # config.logger.debug(f"💾 State saved to {self.state_path}")
+
         except Exception as e:
             from config import logger
             logger.error(f"❌ Save State Failed: {e}")
+
+            # 清理损坏的临时文件
+            if os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                    logger.debug(f"🗑️ Removed corrupted temp file: {temp_path}")
+                except Exception as cleanup_err:
+                    logger.warning(f"⚠️ Failed to cleanup temp file: {cleanup_err}")
+
+            # 重新抛出异常，让调用方感知
+            raise RuntimeError(f"状态保存失败: {e}") from e
 
     def load_state(self):
         """加载状态"""

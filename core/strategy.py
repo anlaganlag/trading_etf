@@ -3,7 +3,9 @@
 - algo: 主调仓逻辑
 - on_bar: 盘中止损监控
 - on_backtest_finished: 回测结束报告
+- verify_orders: 订单成交验证
 """
+import time
 import pandas as pd
 from gm.api import (
     MODE_BACKTEST, MODE_LIVE, current,
@@ -11,9 +13,116 @@ from gm.api import (
     OrderSide_Sell, OrderType_Market,
     PositionEffect_Close, PositionSide_Long
 )
+
+# 订单状态常量（GM API可能不提供，使用整数值）
+try:
+    from gm.api import OrderStatus_Filled, OrderStatus_PartFilled, OrderStatus_Canceled, OrderStatus_Rejected
+except ImportError:
+    # 如果GM API不提供这些常量，使用整数值
+    # 参考GM API文档的订单状态定义
+    OrderStatus_Filled = 3        # 完全成交
+    OrderStatus_PartFilled = 2    # 部分成交
+    OrderStatus_Canceled = 5      # 已撤销
+    OrderStatus_Rejected = 6      # 已拒绝
+
 from config import config, logger
 from .account import get_account
 from .signal import get_market_regime, get_ranking
+
+
+def verify_orders(context, submitted_orders, wait_seconds=30):
+    """
+    验证订单成交情况
+
+    Args:
+        context: GM context对象
+        submitted_orders: 订单列表 [{'order': order_obj, 'symbol': sym, 'side': 'BUY'/'SELL'}, ...]
+        wait_seconds: 等待时间（秒）
+
+    Returns:
+        dict: {'all_filled': bool, 'failed_orders': list}
+    """
+    if not submitted_orders or context.mode != MODE_LIVE:
+        return {'all_filled': True, 'failed_orders': []}
+
+    logger.info(f"⏳ 等待 {wait_seconds} 秒检查 {len(submitted_orders)} 个订单成交...")
+    time.sleep(wait_seconds)
+
+    failed_orders = []
+
+    for order_info in submitted_orders:
+        order = order_info['order']
+        if not order:
+            logger.warning(f"⚠️ 订单对象为空: {order_info['symbol']}")
+            continue
+
+        # 获取订单状态
+        try:
+            # 订单对象应该有 status 属性
+            status = order.status if hasattr(order, 'status') else None
+
+            if status == OrderStatus_Filled:
+                logger.info(f"✅ 订单已成交: {order_info['symbol']} {order_info['side']}")
+            elif status == OrderStatus_PartFilled:
+                filled_vol = order.filled_volume if hasattr(order, 'filled_volume') else 0
+                total_vol = order.volume if hasattr(order, 'volume') else 0
+                logger.warning(
+                    f"⚠️ 订单部分成交: {order_info['symbol']} "
+                    f"{order_info['side']} ({filled_vol}/{total_vol})"
+                )
+                failed_orders.append({
+                    'symbol': order_info['symbol'],
+                    'side': order_info['side'],
+                    'status': '部分成交',
+                    'filled': filled_vol,
+                    'total': total_vol
+                })
+            elif status in (OrderStatus_Canceled, OrderStatus_Rejected):
+                logger.error(
+                    f"❌ 订单失败: {order_info['symbol']} "
+                    f"{order_info['side']} (状态: {status})"
+                )
+                failed_orders.append({
+                    'symbol': order_info['symbol'],
+                    'side': order_info['side'],
+                    'status': '已取消/被拒' if status == OrderStatus_Canceled else '被拒绝'
+                })
+            else:
+                logger.warning(f"⚠️ 订单状态未知: {order_info['symbol']} (状态: {status})")
+                failed_orders.append({
+                    'symbol': order_info['symbol'],
+                    'side': order_info['side'],
+                    'status': f'未知状态({status})'
+                })
+
+        except Exception as e:
+            logger.error(f"❌ 检查订单状态失败: {order_info['symbol']} - {e}")
+            failed_orders.append({
+                'symbol': order_info['symbol'],
+                'side': order_info['side'],
+                'status': f'检查失败: {str(e)[:50]}'
+            })
+
+    # 发送警报（如果有失败订单）
+    if failed_orders:
+        logger.error(f"❌ {len(failed_orders)} 个订单未完全成交")
+
+        # 微信通知
+        try:
+            msg_lines = [f"⚠️ 订单成交异常 ({len(failed_orders)}/{len(submitted_orders)})"]
+            for order in failed_orders[:5]:  # 最多显示5个
+                msg_lines.append(f"- {order['symbol']} {order['side']}: {order['status']}")
+            if len(failed_orders) > 5:
+                msg_lines.append(f"... 及其他 {len(failed_orders)-5} 个")
+
+            context.wechat.send_text("\n".join(msg_lines))
+        except Exception as e:
+            logger.warning(f"⚠️ 微信通知失败: {e}")
+
+    return {
+        'all_filled': len(failed_orders) == 0,
+        'failed_orders': failed_orders
+    }
 
 
 def algo(context):
@@ -131,8 +240,43 @@ def algo(context):
     if prices_slice.empty:
         logger.warning(f"⚠️ [ALGO] No price data available up to {current_dt}")
         return
-    
-    price_map = prices_slice.iloc[-1].to_dict()
+
+    # 生成价格映射，过滤NaN值
+    latest_prices = prices_slice.iloc[-1]
+    price_map = {}
+    missing_symbols = []
+
+    for sym in context.whitelist:
+        if sym in latest_prices.index:
+            price = latest_prices[sym]
+            if pd.notna(price) and price > 0:
+                price_map[sym] = price
+            else:
+                # 尝试使用前一日价格
+                if len(prices_slice) > 1:
+                    prev_price = prices_slice[sym].iloc[-2]
+                    if pd.notna(prev_price) and prev_price > 0:
+                        logger.warning(f"⚠️ {sym} 今日数据缺失，使用昨日价格 {prev_price:.3f}")
+                        price_map[sym] = prev_price
+                    else:
+                        missing_symbols.append(sym)
+                else:
+                    missing_symbols.append(sym)
+        else:
+            missing_symbols.append(sym)
+
+    # 如果有缺失数据，发送警报
+    if missing_symbols:
+        logger.error(f"❌ {len(missing_symbols)} 个标的价格数据缺失: {missing_symbols}")
+        try:
+            context.wechat.send_text(
+                f"⚠️ 价格数据缺失警报\n"
+                f"缺失标的: {len(missing_symbols)} 个\n" +
+                "\n".join([f"- {s}" for s in missing_symbols[:5]]) +
+                (f"\n... 及其他 {len(missing_symbols)-5} 个" if len(missing_symbols) > 5 else "")
+            )
+        except Exception as e:
+            logger.warning(f"⚠️ 微信通知失败: {e}")
     for t in context.rpm.tranches:
         t.update_value(price_map)
         to_sell = t.check_guard(price_map, current_dt)
@@ -204,13 +348,14 @@ def algo(context):
         return
 
     order_summary = []
+    submitted_orders = []  # 记录提交的订单（用于验证）
 
     # A. 卖出多余持仓
     for pos in acc.positions():
         diff = pos.amount - tgt_qty.get(pos.symbol, 0)
         if diff > 0 and pos.available > 0:
             vol_to_sell = int(min(diff, pos.available))
-            order_volume(
+            order = order_volume(
                 symbol=pos.symbol,
                 volume=vol_to_sell,
                 side=OrderSide_Sell,
@@ -219,11 +364,12 @@ def algo(context):
                 account=context.account_id if context.mode == MODE_LIVE else ""
             )
             order_summary.append(f"SELL {pos.symbol} {vol_to_sell}股")
+            submitted_orders.append({'order': order, 'symbol': pos.symbol, 'side': 'SELL'})
 
     # B. 买入目标仓位
     for sym, qty in tgt_qty.items():
         if qty > 0:
-            order_target_volume(
+            order = order_target_volume(
                 symbol=sym,
                 volume=int(qty),
                 position_side=PositionSide_Long,
@@ -234,9 +380,34 @@ def algo(context):
             current_pos = next((p.amount for p in acc.positions() if p.symbol == sym), 0)
             if int(qty) > current_pos:
                 order_summary.append(f"BUY  {sym} -> {int(qty)}股")
+                submitted_orders.append({'order': order, 'symbol': sym, 'side': 'BUY'})
 
-    context.rpm.record_nav(current_dt)
-    context.rpm.save_state()
+    # === 订单成交验证（仅实盘） ===
+    if context.mode == MODE_LIVE and submitted_orders:
+        logger.info(f"📋 已提交 {len(submitted_orders)} 个订单，开始验证成交...")
+        verification_result = verify_orders(context, submitted_orders, wait_seconds=30)
+
+        if not verification_result['all_filled']:
+            logger.warning(f"⚠️ 部分订单未成交，详见微信通知")
+
+    # === 保存状态（关键步骤） ===
+    try:
+        context.rpm.save_state()
+        logger.info("📝 State saved successfully")
+    except Exception as e:
+        logger.error(f"💥 状态保存失败，策略将停止: {e}")
+        # 发送紧急通知
+        try:
+            context.wechat.send_text(
+                f"🆘 状态保存失败!\n"
+                f"错误: {str(e)[:100]}\n"
+                f"时间: {current_dt.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                f"建议: 检查磁盘空间和文件权限"
+            )
+        except:
+            pass
+        # 重新抛出异常，触发自动重启
+        raise
 
     # === 每日收盘汇报 (仅实盘) ===
     if context.mode == MODE_LIVE:
@@ -292,7 +463,13 @@ def on_bar(context, bars):
                         order_type=OrderType_Market
                     )
                     t.sell(bar.symbol, curr)
-                    context.rpm.save_state()
+                    # 保存状态（止损后）
+                    try:
+                        context.rpm.save_state()
+                    except Exception as e:
+                        logger.error(f"❌ 止损后状态保存失败: {e}")
+                        # 止损情况下保存失败不中断策略，只记录警告
+                        # 因为订单已提交，下次启动会重新同步
 
 
 def on_backtest_finished(context, indicator):
@@ -304,17 +481,8 @@ def on_backtest_finished(context, indicator):
     dtn_status = "Dynamic" if config.DYNAMIC_TOP_N else f"Fixed {config.TOP_N}"
     
     logger.info("=" * 60)
-    logger.info(f"📊 掘金量化回测报告 (T+1 次日成交) | BUFFER={config.TURNOVER_BUFFER}, SL={dsl_status}")
+    logger.info(f"📊 BACKTEST REPORT (BUFFER={config.TURNOVER_BUFFER}, SL={dsl_status}, TOP_N={dtn_status})")
     logger.info(f"🚀 Return: {indicator.get('pnl_ratio', 0)*100:.2f}%")
     logger.info(f"📉 MaxDD: {indicator.get('max_drawdown', 0)*100:.2f}%")
     logger.info(f"💎 Sharpe: {indicator.get('sharp_ratio', 0):.2f}")
-    
-    # RPM Report (Trade at Close)
-    summary = context.rpm.get_performance_summary()
-    if summary:
-        logger.info("-" * 60)
-        logger.info("📈 尾盘模回测报告 (T+0 当日收盘价成交)")
-        logger.info(f"🚀 Return: {summary.get('return', 0)*100:.2f}%")
-        logger.info(f"📉 MaxDD: {summary.get('max_dd', 0)*100:.2f}%")
-        logger.info(f"💎 Sharpe: {summary.get('sharpe', 0):.2f}")
     logger.info("=" * 60)
