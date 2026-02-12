@@ -1,5 +1,5 @@
 {
-  "days_count": 11,
+  "days_count": 12,
   "tranches": [
     {
       "id": 0,
@@ -19,7 +19,7 @@
         },
         "SZSE.159745": {
           "entry_price": 0.737,
-          "high_price": 0.737,
+          "high_price": 0.739,
           "entry_dt": "2026-02-12T13:30:00",
           "volatility": 0.02
         },
@@ -36,16 +36,16 @@
           "volatility": 0.02
         }
       },
-      "total_value": 1000541.1000000001,
+      "total_value": 1002676.4,
       "guard_triggered_today": false
     },
     {
       "id": 1,
-      "cash": 10102.00000000003,
+      "cash": 7787.200000000029,
       "holdings": {
         "SZSE.159697": 178800,
         "SZSE.159745": 334400,
-        "SHSE.517520": 94900,
+        "SHSE.517520": 95800,
         "SZSE.159731": 236600
       },
       "pos_records": {
@@ -62,9 +62,9 @@
           "volatility": 0.02
         },
         "SHSE.517520": {
-          "entry_price": 2.608,
-          "high_price": 2.615,
-          "entry_dt": "2026-02-12T10:10:00",
+          "entry_price": 2.572,
+          "high_price": 2.572,
+          "entry_dt": "2026-02-12T14:10:00",
           "volatility": 0.02
         },
         "SZSE.159731": {
@@ -74,7 +74,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 994424.8,
+      "total_value": 995723.6000000001,
       "guard_triggered_today": false
     },
     {
@@ -112,7 +112,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 994712.3999999999,
+      "total_value": 995742.2,
       "guard_triggered_today": false
     },
     {
@@ -150,7 +150,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 1002550.9999999999,
+      "total_value": 1004554.7,
       "guard_triggered_today": false
     },
     {
@@ -188,7 +188,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 998711.7999999999,
+      "total_value": 1000708.8999999999,
       "guard_triggered_today": false
     },
     {
@@ -226,7 +226,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 997288.2000000001,
+      "total_value": 999283.2000000001,
       "guard_triggered_today": false
     },
     {
@@ -264,7 +264,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 994999.5,
+      "total_value": 996895.1000000001,
       "guard_triggered_today": false
     },
     {
@@ -285,7 +285,7 @@
         },
         "SHSE.515790": {
           "entry_price": 1.128,
-          "high_price": 1.128,
+          "high_price": 1.129,
           "entry_dt": "2026-02-12T11:20:00",
           "volatility": 0.02
         },
@@ -302,7 +302,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 994564.3,
+      "total_value": 996458.7000000001,
       "guard_triggered_today": false
     },
     {
@@ -317,7 +317,7 @@
       "pos_records": {
         "SZSE.159745": {
           "entry_price": 0.738,
-          "high_price": 0.738,
+          "high_price": 0.739,
           "entry_dt": "2026-02-12T13:10:00.001000",
           "volatility": 0.02
         },
@@ -329,7 +329,7 @@
         },
         "SHSE.515790": {
           "entry_price": 1.127,
-          "high_price": 1.127,
+          "high_price": 1.129,
           "entry_dt": "2026-02-12T13:10:00.001000",
           "volatility": 0.02
         },
@@ -340,7 +340,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 999545.7000000001,
+      "total_value": 1000536.5,
       "guard_triggered_today": false
     },
     {
@@ -355,7 +355,7 @@
       "pos_records": {
         "SZSE.159745": {
           "entry_price": 0.737,
-          "high_price": 0.737,
+          "high_price": 0.739,
           "entry_dt": "2026-02-12T13:20:00",
           "volatility": 0.02
         },
@@ -367,7 +367,7 @@
         },
         "SHSE.515790": {
           "entry_price": 1.125,
-          "high_price": 1.127,
+          "high_price": 1.129,
           "entry_dt": "2026-02-12T13:20:00",
           "volatility": 0.02
         },
@@ -378,7 +378,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 999984.0,
+      "total_value": 1000975.6000000001,
       "guard_triggered_today": false
     }
   ]

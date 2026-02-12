@@ -408,6 +408,15 @@ def algo(context):
         scale, trend_scale, risk_scale = calculate_position_scale(context, current_dt)
         logger.info(f"🚦 Market State: {context.market_state} | Scale: {scale:.2%} (Trend:{trend_scale:.0%} * Risk:{risk_scale:.0%})")
         
+        # C. 挂载给邮件报告使用
+        context.today_weights = weights_map
+        context.today_scale_info = {'scale': scale, 'trend_scale': trend_scale, 'risk_scale': risk_scale}
+        try:
+            rank_df, _ = get_ranking(context, current_dt)
+            context.today_targets = rank_df.head(config.TOP_N + 2) if rank_df is not None else None
+        except Exception:
+            context.today_targets = None
+        
         final_list = list(weights_map.keys())
         total_w = sum(weights_map.values())
         
@@ -538,6 +547,31 @@ def algo(context):
     # === 每日收盘汇报 (仅实盘) ===
     if context.mode == MODE_LIVE:
         logger.info("📤 Algorithm finished. Triggering notifications...")
+        
+        # --- 收集邮件报告所需数据 ---
+        context.today_order_summary = order_summary  # ['BUY xxx 1000股', ...]
+        context.today_active_tranche_idx = active_idx
+        
+        # 收集排名 & 权重（可能在上面的分支中已计算）
+        if not hasattr(context, 'today_targets'):
+            # 如果还没挂载（例如 guard 触发跳过了排名），尝试重新计算
+            try:
+                rank_df, _ = get_ranking(context, current_dt)
+                if rank_df is not None:
+                    context.today_targets = rank_df.head(config.TOP_N)
+                else:
+                    context.today_targets = None
+            except Exception:
+                context.today_targets = None
+        
+        if not hasattr(context, 'today_weights'):
+            context.today_weights = {}
+        if not hasattr(context, 'today_scale_info'):
+            try:
+                s, ts, rs = calculate_position_scale(context, current_dt)
+                context.today_scale_info = {'scale': s, 'trend_scale': ts, 'risk_scale': rs}
+            except Exception:
+                context.today_scale_info = {'scale': 1.0, 'trend_scale': 1.0, 'risk_scale': 1.0}
         
         # 实时微信简报
         if order_summary:
