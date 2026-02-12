@@ -1,5 +1,5 @@
 {
-  "days_count": 12,
+  "days_count": 13,
   "tranches": [
     {
       "id": 0,
@@ -36,7 +36,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 1002676.4,
+      "total_value": 1003462.8,
       "guard_triggered_today": false
     },
     {
@@ -74,23 +74,23 @@
           "volatility": 0.02
         }
       },
-      "total_value": 995723.6000000001,
+      "total_value": 995417.3999999999,
       "guard_triggered_today": false
     },
     {
       "id": 2,
-      "cash": 10277.199999999953,
+      "cash": 7961.799999999954,
       "holdings": {
-        "SZSE.159745": 333100,
+        "SZSE.159745": 334500,
         "SZSE.159697": 178300,
         "SHSE.513690": 209500,
-        "SHSE.517520": 95200
+        "SHSE.517520": 95700
       },
       "pos_records": {
         "SZSE.159745": {
-          "entry_price": 0.743,
-          "high_price": 0.744,
-          "entry_dt": "2026-02-12T10:20:00",
+          "entry_price": 0.736,
+          "high_price": 0.736,
+          "entry_dt": "2026-02-12T14:55:00",
           "volatility": 0.02
         },
         "SZSE.159697": {
@@ -106,13 +106,13 @@
           "volatility": 0.02
         },
         "SHSE.517520": {
-          "entry_price": 2.598,
-          "high_price": 2.615,
-          "entry_dt": "2026-02-12T10:20:00",
+          "entry_price": 2.57,
+          "high_price": 2.57,
+          "entry_dt": "2026-02-12T14:55:00",
           "volatility": 0.02
         }
       },
-      "total_value": 995742.2,
+      "total_value": 994730.7999999999,
       "guard_triggered_today": false
     },
     {
@@ -150,7 +150,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 1004554.7,
+      "total_value": 1003463.8999999999,
       "guard_triggered_today": false
     },
     {
@@ -188,7 +188,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 1000708.8999999999,
+      "total_value": 999618.2999999999,
       "guard_triggered_today": false
     },
     {
@@ -226,7 +226,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 999283.2000000001,
+      "total_value": 998193.8,
       "guard_triggered_today": false
     },
     {
@@ -264,7 +264,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 996895.1000000001,
+      "total_value": 994972.0000000001,
       "guard_triggered_today": false
     },
     {
@@ -302,7 +302,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 996458.7000000001,
+      "total_value": 994537.4,
       "guard_triggered_today": false
     },
     {
@@ -323,7 +323,7 @@
         },
         "SHSE.560280": {
           "entry_price": 1.87,
-          "high_price": 1.874,
+          "high_price": 1.876,
           "entry_dt": "2026-02-12T13:10:00.001000",
           "volatility": 0.02
         },
@@ -340,7 +340,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 1000536.5,
+      "total_value": 998944.5999999999,
       "guard_triggered_today": false
     },
     {
@@ -361,7 +361,7 @@
         },
         "SHSE.560280": {
           "entry_price": 1.874,
-          "high_price": 1.874,
+          "high_price": 1.876,
           "entry_dt": "2026-02-12T13:20:00",
           "volatility": 0.02
         },
@@ -378,7 +378,7 @@
           "volatility": 0.02
         }
       },
-      "total_value": 1000975.6000000001,
+      "total_value": 999380.2000000001,
       "guard_triggered_today": false
     }
   ]

@@ -176,7 +176,7 @@ ACCOUNT_ID = (
 **风险场景:**
 用户在 `.env` 中同时设置：
 ```env
-GM_ACCOUNT_ID=031af80c-019f-11f1-acc4-00163e022aa6  # 账户A
+GM_ACCOUNT_ID=031af80c-019f-11f1-00163e022aa6  # 账户A
 GM_ACCOUNT_ID_EQUAL=54d9cc4c-03d0-11f1-a5cf-00163e022aa6  # 账户B
 WEIGHT_SCHEME=EQUAL
 ```

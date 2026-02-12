@@ -448,7 +448,12 @@ def algo(context):
             active_t.sell(s, price_map.get(s, 0))
 
     # 3. 最终同步 (Order Execution)
-    tgt_qty = context.rpm.total_holdings
+    # === 仅同步当日活跃 Tranche 的持仓变动 ===
+    # 设计理念：不补仓。只执行当日 active_tranche 产生的买卖指令。
+    # 如果历史 tranche 的虚拟持仓因为订单失败等原因与实际不一致，
+    # 不自动补买，避免追高和资金浪费。
+    active_tranche_holdings = active_t.holdings.copy()
+    tgt_qty = context.rpm.total_holdings  # 仍用于卖出判断
     
     # 获取账户信息（带 fallback：指定 account_id 不可用时尝试默认账户）
     try:
@@ -464,8 +469,7 @@ def algo(context):
     order_summary = []
     submitted_orders = []  # 记录提交的订单（用于验证）
 
-    # A. 卖出多余持仓
-    # A. 卖出多余持仓 (强制整百，除非清仓)
+    # A. 卖出多余持仓（仅卖出当日活跃 Tranche 需要卖出的标的）
     for pos in acc.positions():
         target = tgt_qty.get(pos.symbol, 0)
         diff = pos.amount - target
@@ -493,16 +497,19 @@ def algo(context):
                 order_summary.append(f"SELL {pos.symbol} {vol_to_sell}股")
                 submitted_orders.append({'order': order, 'symbol': pos.symbol, 'side': 'SELL'})
 
-    # B. 买入目标仓位 (强制整百)
-    for sym, target_qty in tgt_qty.items():
-        if target_qty > 0:
+    # B. 买入目标仓位 — 仅限当日活跃 Tranche 的持仓 (禁用补仓)
+    for sym, shares in active_tranche_holdings.items():
+        if shares > 0:
             # 获取当前持仓
             pos = next((p for p in acc.positions() if p.symbol == sym), None)
             current_amount = pos.amount if pos else 0
             
-            if target_qty > current_amount:
+            # 计算该标的在所有 tranche 中的目标总量
+            target_total = tgt_qty.get(sym, 0)
+            
+            if target_total > current_amount:
                 # 计算买入缺口并下取整到100
-                diff = target_qty - current_amount
+                diff = target_total - current_amount
                 vol_to_buy = (int(diff) // 100) * 100
                 
                 if vol_to_buy > 0:
@@ -516,6 +523,19 @@ def algo(context):
                     )
                     order_summary.append(f"BUY  {sym} {vol_to_buy}股")
                     submitted_orders.append({'order': order, 'symbol': sym, 'side': 'BUY'})
+    
+    # C. 记录被跳过的补仓（仅日志，不执行）
+    if context.mode == MODE_LIVE:
+        skipped_symbols = set(tgt_qty.keys()) - set(active_tranche_holdings.keys())
+        for sym in skipped_symbols:
+            target_total = tgt_qty.get(sym, 0)
+            pos = next((p for p in acc.positions() if p.symbol == sym), None)
+            current_amount = pos.amount if pos else 0
+            gap = target_total - current_amount
+            if gap > 0:
+                vol_gap = (int(gap) // 100) * 100
+                if vol_gap > 0:
+                    logger.info(f"⏭️ [跳过补仓] {sym} | 虚拟目标: {target_total} | 实际: {current_amount} | 缺口: {vol_gap}")
 
     # === 订单成交验证（仅实盘） ===
     if context.mode == MODE_LIVE and submitted_orders:
