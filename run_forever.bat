@@ -1,16 +1,31 @@
 @echo off
 chcp 65001 >nul
-title ETF Strategy Guardian - 24/7
+title ETF Strategy - Champion Weight Version (冠军加权版)
 color 0A
+
+:: ============================================
+::   ETF 量化交易策略 - 冠军加权版本启动脚本
+:: ============================================
+::   - 权重方案: CHAMPION (3:1:1:1 冠军加权)
+::   - 状态文件: rolling_state_main_champion.json
+::   - 日志文件: strategy_YYYYMMDD_champion.log
+::   - 账户 ID: 通过环境变量指定
+:: ============================================
 
 :: 获取脚本所在目录
 set SCRIPT_DIR=%~dp0
 cd /d "%SCRIPT_DIR%"
 
+:: === 冠军加权版本专用配置 ===
+set WEIGHT_SCHEME=CHAMPION
+set VERSION_SUFFIX=_champion
+
 echo ============================================
-echo   ETF 交易策略 - 守护进程模式
+echo   ETF 交易策略 - 冠军加权版本 (3:1:1:1)
 echo ============================================
 echo   启动时间: %date% %time%
+echo   权重方案: %WEIGHT_SCHEME%
+echo   状态文件: rolling_state_main%VERSION_SUFFIX%.json
 echo   工作目录: %SCRIPT_DIR%
 echo ============================================
 echo.

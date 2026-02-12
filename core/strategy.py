@@ -10,6 +10,7 @@ import pandas as pd
 from gm.api import (
     MODE_BACKTEST, MODE_LIVE, current,
     order_volume, order_target_volume, order_target_percent,
+    get_orders,
     OrderSide_Buy, OrderSide_Sell, OrderType_Market,
     PositionEffect_Open, PositionEffect_Close, PositionSide_Long
 )
@@ -34,6 +35,9 @@ def verify_orders(context, submitted_orders, wait_seconds=30):
     """
     验证订单成交情况
 
+    修复: 不再依赖 order_volume() 返回的快照对象（其 .status 永远是下单瞬间值），
+    而是通过 get_orders() 从服务器查询最新状态，用 cl_ord_id 匹配。
+
     Args:
         context: GM context对象
         submitted_orders: 订单列表 [{'order': order_obj, 'symbol': sym, 'side': 'BUY'/'SELL'}, ...]
@@ -48,6 +52,23 @@ def verify_orders(context, submitted_orders, wait_seconds=30):
     logger.info(f"⏳ 等待 {wait_seconds} 秒检查 {len(submitted_orders)} 个订单成交...")
     time.sleep(wait_seconds)
 
+    # ========== 关键修复: 从服务器获取最新订单状态 ==========
+    # order_volume() 返回的 Order 对象是下单瞬间的快照，status 不会自动更新。
+    # 必须通过 get_orders() 查询服务器的实时状态。
+    latest_orders_map = {}  # cl_ord_id -> latest_order_obj
+    try:
+        all_today_orders = get_orders()
+        if all_today_orders:
+            for o in all_today_orders:
+                oid = getattr(o, 'cl_ord_id', None) or (o.get('cl_ord_id') if isinstance(o, dict) else None)
+                if oid:
+                    latest_orders_map[oid] = o
+            logger.info(f"📋 从服务器获取到 {len(latest_orders_map)} 个今日订单状态")
+        else:
+            logger.warning("⚠️ get_orders() 返回空列表，将回退到快照检查")
+    except Exception as e:
+        logger.warning(f"⚠️ get_orders() 调用失败: {e}，将回退到快照检查")
+
     failed_orders = []
 
     for order_info in submitted_orders:
@@ -56,16 +77,33 @@ def verify_orders(context, submitted_orders, wait_seconds=30):
             logger.warning(f"⚠️ 订单对象为空: {order_info['symbol']}")
             continue
 
-        # 获取订单状态
         try:
-            # 订单对象应该有 status 属性
-            status = order.status if hasattr(order, 'status') else None
+            # 优先使用服务器最新状态
+            cl_ord_id = getattr(order, 'cl_ord_id', None)
+            if cl_ord_id and cl_ord_id in latest_orders_map:
+                live_order = latest_orders_map[cl_ord_id]
+                # 兼容 dict 和 object 两种访问方式
+                if isinstance(live_order, dict):
+                    status = live_order.get('status')
+                    filled_vol = live_order.get('filled_volume', 0)
+                    total_vol = live_order.get('volume', 0)
+                else:
+                    status = getattr(live_order, 'status', None)
+                    filled_vol = getattr(live_order, 'filled_volume', 0)
+                    total_vol = getattr(live_order, 'volume', 0)
+                logger.debug(f"🔍 [get_orders] {order_info['symbol']} cl_ord_id={cl_ord_id} status={status}")
+            else:
+                # 回退: 使用快照（大概率为 None，但仍然尝试）
+                status = getattr(order, 'status', None)
+                filled_vol = getattr(order, 'filled_volume', 0)
+                total_vol = getattr(order, 'volume', 0)
+                if cl_ord_id:
+                    logger.warning(f"⚠️ 未在 get_orders() 中找到 cl_ord_id={cl_ord_id}")
 
+            # 判断状态
             if status == OrderStatus_Filled:
-                logger.info(f"✅ 订单已成交: {order_info['symbol']} {order_info['side']}")
+                logger.info(f"✅ 订单已成交: {order_info['symbol']} {order_info['side']} ({filled_vol}/{total_vol})")
             elif status == OrderStatus_PartFilled:
-                filled_vol = order.filled_volume if hasattr(order, 'filled_volume') else 0
-                total_vol = order.volume if hasattr(order, 'volume') else 0
                 logger.warning(
                     f"⚠️ 订单部分成交: {order_info['symbol']} "
                     f"{order_info['side']} ({filled_vol}/{total_vol})"
@@ -87,6 +125,18 @@ def verify_orders(context, submitted_orders, wait_seconds=30):
                     'side': order_info['side'],
                     'status': '已取消/被拒' if status == OrderStatus_Canceled else '被拒绝'
                 })
+            elif status is None:
+                # status 为 None 通常是 get_orders 回退时的快照问题
+                # 如果 get_orders 也没查到，记录但不作为 hard failure
+                logger.warning(
+                    f"⚠️ 订单状态无法确认: {order_info['symbol']} {order_info['side']} "
+                    f"(cl_ord_id={cl_ord_id}, status=None) - 请在券商端手动确认"
+                )
+                failed_orders.append({
+                    'symbol': order_info['symbol'],
+                    'side': order_info['side'],
+                    'status': '无法确认(请手动检查)'
+                })
             else:
                 logger.warning(f"⚠️ 订单状态未知: {order_info['symbol']} (状态: {status})")
                 failed_orders.append({
@@ -103,21 +153,25 @@ def verify_orders(context, submitted_orders, wait_seconds=30):
                 'status': f'检查失败: {str(e)[:50]}'
             })
 
-    # 发送警报（如果有失败订单）
+    # 发送汇总通知
+    filled_count = len(submitted_orders) - len(failed_orders)
     if failed_orders:
-        logger.error(f"❌ {len(failed_orders)} 个订单未完全成交")
-
-        # 微信通知
+        logger.warning(f"⚠️ {filled_count}/{len(submitted_orders)} 确认成交, {len(failed_orders)} 笔需注意")
         try:
-            msg_lines = [f"⚠️ 订单成交异常 ({len(failed_orders)}/{len(submitted_orders)})"]
-            for order in failed_orders[:5]:  # 最多显示5个
+            msg_lines = [f"⚠️ 订单验证汇总 ({filled_count} 成交 / {len(failed_orders)} 异常)"]
+            for order in failed_orders[:5]:
                 msg_lines.append(f"- {order['symbol']} {order['side']}: {order['status']}")
             if len(failed_orders) > 5:
                 msg_lines.append(f"... 及其他 {len(failed_orders)-5} 个")
-
             context.wechat.send_text("\n".join(msg_lines))
         except Exception as e:
             logger.warning(f"⚠️ 微信通知失败: {e}")
+    else:
+        logger.info(f"✅ 全部 {len(submitted_orders)} 笔订单已成交")
+        try:
+            context.wechat.send_text(f"✅ 全部 {len(submitted_orders)} 笔订单已确认成交")
+        except:
+            pass
 
     return {
         'all_filled': len(failed_orders) == 0,

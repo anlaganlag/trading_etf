@@ -72,6 +72,7 @@ class Config:
     # CHAMPION = 3:1:1:1 (冠军加权), EQUAL = 1:1:1:1 (等权)
     WEIGHT_SCHEME = os.environ.get('WEIGHT_SCHEME', 'CHAMPION')
     VERSION_SUFFIX = os.environ.get('VERSION_SUFFIX', '')  # 用于区分不同版本的文件
+    VERSION_LABEL = '[等权]' if WEIGHT_SCHEME == 'EQUAL' else '[冠军]'  # 通知前缀
     
     # === 状态文件 ===
     MACRO_BENCHMARK = 'SZSE.159915'  # 创业板ETF作为宏观锚点

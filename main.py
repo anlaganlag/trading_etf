@@ -12,6 +12,7 @@ import glob
 import threading
 import signal
 import sys
+import msvcrt
 from datetime import datetime, timedelta
 from gm.api import run, set_token, set_account_id, MODE_LIVE, ADJUST_PREV, subscribe, schedule
 from config import config, logger, validate_env
@@ -51,7 +52,7 @@ def _heartbeat_loop():
             
             # 发送心跳
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            msg = f"💓 心跳报告 ({now})\n✅ 策略正常运行中\n账号: {config.ACCOUNT_ID[-6:]}"
+            msg = f"💓 心跳报告 ({now})\n✅ 策略正常运行中\n账号: {config.ACCOUNT_ID[-6:]}\n方案: {config.WEIGHT_SCHEME}"
             wechat.send_text(msg)
             logger.info(f"💓 Heartbeat sent at {now}")
             
@@ -137,6 +138,7 @@ def _graceful_shutdown(signum, frame):
             try:
                 _global_wechat.send_text(
                     f"⚠️ 策略被手动中断\n"
+                    f"方案: {config.WEIGHT_SCHEME}\n"
                     f"信号: {signal_name}\n"
                     f"时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                 )
@@ -248,7 +250,7 @@ def init(context):
     
     # 6. 注册每日执行时间
     if config.EXEC_EVERY_10MIN:
-        for t in ('14:00:00', '14:10:00', '14:20:00', '14:30:00', '14:40:00', '14:50:00', '14:55:00'):
+        for t in ('10:00:00', '10:10:00','10:20:00', '10:30:00', '10:40:00', '10:50:00', '11:00:00', '11:10:00', '11:20:00','13:10:00', '13:20:00', '13:30:00', '13:40:00', '13:50:00', '14:00:00', '14:10:00', '14:20:00', '14:30:00', '14:40:00', '14:50:00', '14:55:00'):
             schedule(schedule_func=algo, date_rule='1d', time_rule=t)
         logger.info("⏰ Scheduled execution every 10 min: 14:00–14:55 (stress test)")
     else:
@@ -264,12 +266,29 @@ def init(context):
 def run_strategy_safe():
     """
     带守护进程的运行逻辑
+    - 进程互斥锁
     - 自动重连
     - 心跳监控
     - 日志清理
     - 优雅退出
     """
     if not validate_env():
+        return
+
+    # === 进程互斥锁 ===
+    lock_file_path = os.path.join(config.BASE_DIR, f"strategy{config.VERSION_SUFFIX}.lock")
+    lock_fp = None
+    try:
+        lock_fp = open(lock_file_path, 'w')
+        msvcrt.locking(lock_fp.fileno(), msvcrt.LK_NBLCK, 1)
+        lock_fp.write(str(os.getpid()))
+        lock_fp.flush()
+        logger.info(f"🔒 进程锁已获取: {lock_file_path} (PID={os.getpid()})")
+    except OSError:
+        logger.error(f"❌ 同版本策略已在运行! 锁文件: {lock_file_path}")
+        logger.error("   请先关闭已有实例再启动")
+        if lock_fp:
+            lock_fp.close()
         return
 
     # 注册信号处理器（优雅退出机制）
@@ -314,7 +333,7 @@ def run_strategy_safe():
                 
                 # 尝试微信报警
                 try:
-                    msg = f"⚠️ 策略异常中断!\n错误: {str(e)[:100]}\n将在30秒后尝试第 {retry_count} 次自动重连..."
+                    msg = f"⚠️ 策略异常中断!\n方案: {config.WEIGHT_SCHEME}\n错误: {str(e)[:100]}\n将在30秒后尝试第 {retry_count} 次自动重连..."
                     EnterpriseWeChat().send_text(msg)
                 except:
                     pass
@@ -323,6 +342,15 @@ def run_strategy_safe():
     finally:
         # 无论如何都停止心跳线程
         _stop_heartbeat()
+        # 释放进程锁
+        if lock_fp:
+            try:
+                msvcrt.locking(lock_fp.fileno(), msvcrt.LK_UNLCK, 1)
+                lock_fp.close()
+                os.remove(lock_file_path)
+                logger.info(f"🔓 进程锁已释放: {lock_file_path}")
+            except Exception:
+                pass
 
 if __name__ == '__main__':
     weight_label = "等权 (1:1:1:1)" if config.WEIGHT_SCHEME == 'EQUAL' else "冠军加权 (3:1:1:1)"

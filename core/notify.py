@@ -13,13 +13,15 @@ class EnterpriseWeChat:
     
     def __init__(self, webhook_url=None):
         self.webhook_url = webhook_url or config.WECHAT_WEBHOOK
+        self._tag = config.VERSION_LABEL  # [等权] 或 [冠军]
     
     def send_text(self, content):
-        """发送文本消息"""
+        """发送文本消息（自动加版本前缀）"""
         try:
+            tagged = f"{self._tag} {content}"
             data = {
                 "msgtype": "text",
-                "text": {"content": content}
+                "text": {"content": tagged}
             }
             resp = requests.post(self.webhook_url, json=data, timeout=10)
             if resp.status_code == 200:
@@ -57,21 +59,23 @@ class EmailNotifier:
         self.user = config.EMAIL_USER
         self.password = config.EMAIL_PASS
         self.to = config.EMAIL_TO
+        self._tag = config.VERSION_LABEL  # [等权] 或 [冠军]
     
     def send_email(self, subject, body):
-        """发送邮件"""
+        """发送邮件（主题自动加版本前缀）"""
         try:
+            tagged_subject = f"{self._tag} {subject}"
             msg = MIMEMultipart()
             msg['From'] = self.user
             msg['To'] = self.to
-            msg['Subject'] = subject
+            msg['Subject'] = tagged_subject
             msg.attach(MIMEText(body, 'plain', 'utf-8'))
             
             with smtplib.SMTP_SSL(self.host, self.port) as server:
                 server.login(self.user, self.password)
                 server.sendmail(self.user, self.to, msg.as_string())
             
-            logger.info(f"📧 Email sent: {subject}")
+            logger.info(f"📧 Email sent: {tagged_subject}")
         except Exception as e:
             logger.error(f"❌ Email send error: {str(e)}")
     
