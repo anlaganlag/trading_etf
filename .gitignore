@@ -52,3 +52,4 @@ deploy/nssm.exe
 # Temporary files
 *.bak
 ~$*
+*.lock

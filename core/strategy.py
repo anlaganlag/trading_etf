@@ -24,7 +24,11 @@ except ImportError:
     OrderStatus_Filled = 3        # 完全成交
     OrderStatus_PartFilled = 2    # 部分成交
     OrderStatus_Canceled = 5      # 已撤销
-    OrderStatus_Rejected = 6      # 已拒绝
+    OrderStatus_Rejected = 8      # 已拒绝 (常见于实盘 status=8)
+    # 增加额外备用常量
+    OrderStatus_New = 1           # 已报
+    OrderStatus_Expired = 12       # 已过期
+    OrderStatus_Accepted = 14      # 已受理
 
 from config import config, logger
 from .account import get_account
@@ -35,8 +39,10 @@ def verify_orders(context, submitted_orders, wait_seconds=30):
     """
     验证订单成交情况
 
-    修复: 不再依赖 order_volume() 返回的快照对象（其 .status 永远是下单瞬间值），
-    而是通过 get_orders() 从服务器查询最新状态，用 cl_ord_id 匹配。
+    策略: 
+    1. 调用 get_orders() 获取今日全部订单（含最新状态）
+    2. 按 (symbol, side) 匹配我们提交的订单
+    3. 报告成交/未成交情况
 
     Args:
         context: GM context对象
@@ -52,37 +58,78 @@ def verify_orders(context, submitted_orders, wait_seconds=30):
     logger.info(f"⏳ 等待 {wait_seconds} 秒检查 {len(submitted_orders)} 个订单成交...")
     time.sleep(wait_seconds)
 
-    # ========== 关键修复: 从服务器获取最新订单状态 ==========
-    # order_volume() 返回的 Order 对象是下单瞬间的快照，status 不会自动更新。
-    # 必须通过 get_orders() 查询服务器的实时状态。
-    latest_orders_map = {}  # cl_ord_id -> latest_order_obj
+    # ========== 从服务器获取最新订单状态 ==========
+    # 1. cl-ord-id -> order 映射 (全球唯一匹配)
+    latest_orders_id_map = {}
+    # 2. (symbol, gm_side) -> [order, ...] 映射 (备用匹配)
+    latest_orders_sym_map = {}  
+
     try:
         all_today_orders = get_orders()
         if all_today_orders:
+            target_account_id = context.account_id
             for o in all_today_orders:
-                oid = getattr(o, 'cl_ord_id', None) or (o.get('cl_ord_id') if isinstance(o, dict) else None)
+                # 统一转为 dict 风格读取
+                if not isinstance(o, dict):
+                    oid = getattr(o, 'cl_ord_id', None)
+                    acc = getattr(o, 'account_id', None)
+                    sym = getattr(o, 'symbol', '')
+                    side = getattr(o, 'side', 0)
+                else:
+                    oid = o.get('cl_ord_id')
+                    acc = o.get('account_id')
+                    sym = o.get('symbol', '')
+                    side = o.get('side', 0)
+                
+                # 核心过滤：必须属于当前账户
+                if acc != target_account_id:
+                    continue
+                
+                # 记录到 ID 映射表
                 if oid:
-                    latest_orders_map[oid] = o
-            logger.info(f"📋 从服务器获取到 {len(latest_orders_map)} 个今日订单状态")
+                    latest_orders_id_map[oid] = o
+                
+                # 记录到品种映射表 (用于 fallback)
+                key = (sym, side)
+                if key not in latest_orders_sym_map:
+                    latest_orders_sym_map[key] = []
+                latest_orders_sym_map[key].append(o)
+            
+            logger.info(f"📋 从服务器获取到 {len(all_today_orders)} 个订单，所属账户过滤后剩余 {len(latest_orders_id_map)} 个 ID 匹配项")
         else:
-            logger.warning("⚠️ get_orders() 返回空列表，将回退到快照检查")
+            logger.warning("⚠️ get_orders() 返回空列表")
     except Exception as e:
-        logger.warning(f"⚠️ get_orders() 调用失败: {e}，将回退到快照检查")
+        logger.warning(f"⚠️ get_orders() 调用失败: {e}")
+
+    # GM API side 常量: 1=Buy, 2=Sell
+    SIDE_MAP = {'BUY': 1, 'SELL': 2}
 
     failed_orders = []
 
     for order_info in submitted_orders:
         order = order_info['order']
-        if not order:
-            logger.warning(f"⚠️ 订单对象为空: {order_info['symbol']}")
-            continue
+        sym = order_info['symbol']
+        side_str = order_info['side']
+        gm_side = SIDE_MAP.get(side_str, 0)
 
         try:
-            # 优先使用服务器最新状态
+            live_order = None
             cl_ord_id = getattr(order, 'cl_ord_id', None)
-            if cl_ord_id and cl_ord_id in latest_orders_map:
-                live_order = latest_orders_map[cl_ord_id]
-                # 兼容 dict 和 object 两种访问方式
+
+            # 策略 A: 优先使用身份证 (cl_ord_id) 匹配
+            if cl_ord_id and cl_ord_id in latest_orders_id_map:
+                live_order = latest_orders_id_map[cl_ord_id]
+                match_type = "ID"
+            else:
+                # 策略 B: 使用品种 + 方向匹配 (fallback)
+                key = (sym, gm_side)
+                matched_list = latest_orders_sym_map.get(key, [])
+                if matched_list:
+                    live_order = matched_list[-1]
+                    match_type = "SYM"
+            
+            if live_order:
+                # 兼容读取
                 if isinstance(live_order, dict):
                     status = live_order.get('status')
                     filled_vol = live_order.get('filled_volume', 0)
@@ -91,65 +138,69 @@ def verify_orders(context, submitted_orders, wait_seconds=30):
                     status = getattr(live_order, 'status', None)
                     filled_vol = getattr(live_order, 'filled_volume', 0)
                     total_vol = getattr(live_order, 'volume', 0)
-                logger.debug(f"🔍 [get_orders] {order_info['symbol']} cl_ord_id={cl_ord_id} status={status}")
+                # logger.debug(f"🔍 [{match_type}] {sym} {side_str} status={status}")
             else:
-                # 回退: 使用快照（大概率为 None，但仍然尝试）
-                status = getattr(order, 'status', None)
-                filled_vol = getattr(order, 'filled_volume', 0)
-                total_vol = getattr(order, 'volume', 0)
-                if cl_ord_id:
-                    logger.warning(f"⚠️ 未在 get_orders() 中找到 cl_ord_id={cl_ord_id}")
+                status = None
+                filled_vol = 0
+                total_vol = 0
+                logger.warning(f"⚠️ 在服务器历史中找不到该订单: {sym} {side_str}")
 
             # 判断状态
             if status == OrderStatus_Filled:
-                logger.info(f"✅ 订单已成交: {order_info['symbol']} {order_info['side']} ({filled_vol}/{total_vol})")
+                logger.info(f"✅ 订单已成交: {sym} {side_str} ({filled_vol}/{total_vol})")
             elif status == OrderStatus_PartFilled:
                 logger.warning(
-                    f"⚠️ 订单部分成交: {order_info['symbol']} "
-                    f"{order_info['side']} ({filled_vol}/{total_vol})"
+                    f"⚠️ 订单部分成交: {sym} "
+                    f"{side_str} ({filled_vol}/{total_vol})"
                 )
                 failed_orders.append({
-                    'symbol': order_info['symbol'],
-                    'side': order_info['side'],
+                    'symbol': sym,
+                    'side': side_str,
                     'status': '部分成交',
                     'filled': filled_vol,
                     'total': total_vol
                 })
-            elif status in (OrderStatus_Canceled, OrderStatus_Rejected):
+            elif status in (OrderStatus_Canceled, OrderStatus_Rejected, 6, 8):
+                reason = "已拒绝" if status in (OrderStatus_Rejected, 6, 8) else "已取消"
                 logger.error(
-                    f"❌ 订单失败: {order_info['symbol']} "
-                    f"{order_info['side']} (状态: {status})"
+                    f"❌ 订单失败: {sym} "
+                    f"{side_str} (状态: {status}, {reason})"
                 )
                 failed_orders.append({
-                    'symbol': order_info['symbol'],
-                    'side': order_info['side'],
-                    'status': '已取消/被拒' if status == OrderStatus_Canceled else '被拒绝'
+                    'symbol': sym,
+                    'side': side_str,
+                    'status': reason,
+                    'code': status
                 })
             elif status is None:
-                # status 为 None 通常是 get_orders 回退时的快照问题
-                # 如果 get_orders 也没查到，记录但不作为 hard failure
                 logger.warning(
-                    f"⚠️ 订单状态无法确认: {order_info['symbol']} {order_info['side']} "
-                    f"(cl_ord_id={cl_ord_id}, status=None) - 请在券商端手动确认"
+                    f"⚠️ 订单状态无法确认: {sym} {side_str} - 请在券商端手动确认"
                 )
                 failed_orders.append({
-                    'symbol': order_info['symbol'],
-                    'side': order_info['side'],
+                    'symbol': sym,
+                    'side': side_str,
                     'status': '无法确认(请手动检查)'
                 })
             else:
-                logger.warning(f"⚠️ 订单状态未知: {order_info['symbol']} (状态: {status})")
-                failed_orders.append({
-                    'symbol': order_info['symbol'],
-                    'side': order_info['side'],
-                    'status': f'未知状态({status})'
-                })
+                # status 有值但不是已知状态码
+                logger.info(f"ℹ️ 订单状态码: {sym} {side_str} status={status} filled={filled_vol}/{total_vol}")
+                # GM API 状态码: 1=已报, 3=已成, 等。如果不在已知常量中，不一定是错误
+                # 保守处理：不标记为失败
+                if filled_vol and total_vol and filled_vol >= total_vol:
+                    logger.info(f"✅ 订单已成交(按量确认): {sym} {side_str} ({filled_vol}/{total_vol})")
+                else:
+                    logger.warning(f"⚠️ 订单状态未知: {sym} {side_str} (status={status}, filled={filled_vol}/{total_vol})")
+                    failed_orders.append({
+                        'symbol': sym,
+                        'side': side_str,
+                        'status': f'未知状态({status})'
+                    })
 
         except Exception as e:
-            logger.error(f"❌ 检查订单状态失败: {order_info['symbol']} - {e}")
+            logger.error(f"❌ 检查订单状态失败: {sym} - {e}")
             failed_orders.append({
-                'symbol': order_info['symbol'],
-                'side': order_info['side'],
+                'symbol': sym,
+                'side': side_str,
                 'status': f'检查失败: {str(e)[:50]}'
             })
 
