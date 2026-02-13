@@ -604,6 +604,30 @@ def algo(context):
         context.mailer.send_report(context)
         context.wechat.send_report(context)
 
+        # === 持仓对账 (Reconciliation) ===
+        try:
+            # 1. 获取双方持仓
+            real_pos = {p.symbol: p.amount for p in context.account().positions()}
+            strat_pos = context.rpm.total_holdings
+            
+            # 2. 找差异 (忽略 <100 股的碎股差异)
+            diffs = []
+            all_syms = set(real_pos.keys()) | set(strat_pos.keys())
+            for s in all_syms:
+                r_qty = real_pos.get(s, 0)
+                s_qty = strat_pos.get(s, 0)
+                if abs(r_qty - s_qty) >= 100:
+                    diffs.append(f"{s}: 实{r_qty} vs 虚{s_qty}")
+            
+            # 3. 报警
+            if diffs:
+                logger.error(f"⚠️ 持仓对账不平: {diffs}")
+                context.wechat.send_text("⚠️ 持仓对账异常!\n" + "\n".join(diffs[:5]))
+            else:
+                logger.info("✅ 持仓对账平 ✅")
+        except Exception as e:
+            logger.warning(f"对账检查出错: {e}")
+
 
 def on_bar(context, bars):
     """盘中高频止损监控"""

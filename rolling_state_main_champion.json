@@ -1,0 +1,115 @@
+{
+  "days_count": 1,
+  "tranches": [
+    {
+      "id": 0,
+      "cash": 10362.61223656297,
+      "holdings": {
+        "SZSE.159697": 365600,
+        "SZSE.159745": 226300,
+        "SZSE.159930": 101600,
+        "SHSE.517520": 65000
+      },
+      "pos_records": {
+        "SZSE.159697": {
+          "entry_price": 1.352,
+          "high_price": 1.352,
+          "entry_dt": "2026-02-13T10:00:00",
+          "volatility": 0.02
+        },
+        "SZSE.159745": {
+          "entry_price": 0.728,
+          "high_price": 0.728,
+          "entry_dt": "2026-02-13T10:00:00",
+          "volatility": 0.02
+        },
+        "SZSE.159930": {
+          "entry_price": 1.621,
+          "high_price": 1.621,
+          "entry_dt": "2026-02-13T10:00:00",
+          "volatility": 0.02
+        },
+        "SHSE.517520": {
+          "entry_price": 2.534,
+          "high_price": 2.534,
+          "entry_dt": "2026-02-13T10:00:00",
+          "volatility": 0.02
+        }
+      },
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 1,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 2,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 3,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 4,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 5,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 6,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 7,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 8,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    },
+    {
+      "id": 9,
+      "cash": 998803.812236563,
+      "holdings": {},
+      "pos_records": {},
+      "total_value": 998803.812236563,
+      "guard_triggered_today": false
+    }
+  ]
+}
